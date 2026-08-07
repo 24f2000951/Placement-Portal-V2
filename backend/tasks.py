@@ -74,6 +74,8 @@ def generate_application_csv():
             })
     
     return os.path.abspath(csv_filename)
+
+
     
 @celery_app.task
 def send_monthly_report():

@@ -117,6 +117,40 @@ def login():
         "access_token": access_token, 
         "role": user.role
     }), 200
+
+@app.route('/api/admin/', methods=['GET'])
+@jwt_required()
+def admin_dashboard_charts_stats():
+    total_students = Student.query.count()
+    total_companies = Company.query.count()
+    total_applications = Application.query.count()
+    total_drives = Job.query.count()
+    
+    placed_students_count = db.session.query(Application.sid).filter(
+        (Application.status == 'placed') | (Application.status == 'selected')
+    ).distinct().count()
+    
+    placement_rate = (placed_students_count / total_students * 100) if total_students > 0 else 0.0
+    
+    pending_apps = Application.query.filter_by(status='pending').count()
+    accepted_apps = Application.query.filter_by(status='placed').count()
+    rejected_apps = Application.query.filter_by(status='rejected').count()
+    
+    return jsonify({
+        "totals": {
+            "students": total_students,
+            "companies": total_companies,
+            "applications": total_applications,
+            "drives": total_drives,
+            "placed_students": placed_students_count,
+            "placement_rate": round(placement_rate, 2)
+        },
+        "applications_breakdown": {
+            "pending": pending_apps,
+            "accepted": accepted_apps,
+            "rejected": rejected_apps
+        }
+    }), 200
     
 
 @app.route('/api/admin/companies',methods=['GET'])
@@ -879,7 +913,7 @@ def place_applicant(application_id):
         return jsonify({"error": "An error occurred while updating the status."}), 500
 
 @app.route('/api/generate-applications-report', methods=['GET'])
-# @jwt_required()
+@jwt_required()
 def generate_applications_report():
     from tasks import generate_application_csv
     
