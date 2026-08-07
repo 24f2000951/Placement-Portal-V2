@@ -1,12 +1,7 @@
-# Virtual environment
+venv/
 .venv/
-
-# Flask instance folder
-instance/
-
-# Python cache
 __pycache__/
-*.py[cod]
-
-
+*.pyc
+.env
+instance
 Changes.txt
