@@ -7,7 +7,8 @@ import CompanyView from '../views/CompanyView.vue'
 import StudentView from '../views/StudentView.vue'
 import AdminCompany from '../views/AdminCompany.vue'
 import AdminStudent from '../views/AdminStudent.vue'
-import SearchBar from "@/components/SearchBar.vue";
+import CreateDrive from '../views/CompanyCreateDrive.vue'
+
 
 const routes=[
   {
@@ -41,8 +42,11 @@ const routes=[
     {
       path: '/student',
       component: StudentView,
+    },
+    {
+      path: '/company/create-drive',
+      component: CreateDrive,
     }
-
 
 ]
 

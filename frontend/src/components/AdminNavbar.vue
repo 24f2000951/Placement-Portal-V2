@@ -14,7 +14,7 @@ const handleLogout = () => {
   <nav class="navbar navbar-expand-lg bg-white shadow-sm">
     <div class="container-fluid">
       
-      <RouterLink class="navbar-brand fw-bolder text-primary fs-4" to="/admin/dashboard">
+      <RouterLink class="navbar-brand fw-bolder text-primary fs-4" to="/admin">
         <i class="bi bi-briefcase-fill me-1"></i> HireHub
       </RouterLink>
 

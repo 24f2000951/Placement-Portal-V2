@@ -1,6 +1,7 @@
 from flask import Flask,request,jsonify
 from flask_cors import CORS
-from database import db,User,Student,Company
+from database import db,User,Student,Company,Job
+from datetime import datetime
 from flask_jwt_extended import JWTManager, create_access_token, jwt_required, get_jwt_identity
 
 app=Flask(__name__)
@@ -227,10 +228,74 @@ def reject_student(student_id):
     db.session.commit()
     return jsonify({"message": "Student rejected and blacklisted successfully"}), 200
 
+@app.route('/api/company/profile', methods=['GET'])
+@jwt_required()
+def get_company_profile():
+    current_user_id = int(get_jwt_identity())
+    company = User.query.get(current_user_id)
+    if not company or company.role != "company":
+        return jsonify({"error": "Unauthorized access"}), 403
 
+    return jsonify({
+        "id": company.id,
+        "name": company.name,
+        "email": company.email,
+        "company": {
+            "website": company.company.cwebsite,
+            "hrcontact": company.company.hrcontact
+        }
+    }), 200
 
+@app.route('/api/company/create-drive', methods=['POST'])
+@jwt_required()
+def create_drive():
+    current_user_id = int(get_jwt_identity())
+    
+    user_account = User.query.get(current_user_id)
+    if not user_account or user_account.role != "company":
+        return jsonify({"error": "Unauthorized access"}), 403
 
+    company_profile = user_account.company
+    if not company_profile:
+        return jsonify({"error": "Company profile not found"}), 404
 
+    data = request.get_json()
+    deadline_date = datetime.strptime(data["deadline"], "%Y-%m-%d").date()
+
+    drive = Job(
+        jtitle=data["title"],
+        jdesc=data["description"],
+        cgpa_criteria=data["cgpa"],
+        allowed_branches=data["branches"],
+        skills=data["skills"],
+        salary=data["salary"],
+        deadline=deadline_date,
+        location=data["location"],
+        graduation_year=data["year"],
+        cid=current_user_id
+    )
+    db.session.add(drive)
+    db.session.commit()
+
+    return jsonify({"message": "Drive created successfully"}), 201
+
+@app.route('/api/company/drives', methods=['GET'])
+@jwt_required()
+def get_company_drives():
+    current_user_id = int(get_jwt_identity())
+    
+    user_account = User.query.get(current_user_id)
+    if not user_account or user_account.role != "company":
+        return jsonify({"error": "Unauthorized access"}), 403
+
+    drives = Job.query.filter_by(cid=current_user_id).all()
+    drive_list = []
+    for drive in drives:
+        drive_list.append({
+            "title": drive.jtitle,
+            "deadline": drive.deadline.strftime("%Y-%m-%d"),
+        })
+    return jsonify(drive_list), 200
 
 def create_admin():
     existing_admin = User.query.filter_by(email="admin@gmail.com").first()

@@ -7,12 +7,12 @@ import AdminNavbar from "../components/AdminNavbar.vue";
 const isLoggedIn = ref(false);
 
 
-  const accessToken = localStorage.getItem("access_token");
+const accessToken = localStorage.getItem("access_token");
   if (accessToken) {
     isLoggedIn.value = true;
   } else {
     router.push("/login");
-  }
+}
 
 
 </script>
