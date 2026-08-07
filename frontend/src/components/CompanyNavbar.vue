@@ -17,8 +17,15 @@ const handleLogout = () => {
     <RouterLink class="navbar-brand fw-bolder text-primary fs-4" to="/company">
         <i class="bi bi-briefcase-fill me-1"></i> HireHub
       </RouterLink>
+    <div class="collapse navbar-collapse" id="navbarSupportedContent">
+        
+      <ul class="navbar-nav me-auto mb-2 mb-lg-0 ms-lg-4">
+          <li class="nav-item">
+            <RouterLink class="nav-link custom-link" active-class="active-blue" to="/company/drives">Drives</RouterLink>
+          </li>
+      </ul>
     <button class="btn btn-danger btn-sm fw-bold shadow-sm" @click="handleLogout">Logout</button>
     </div>
-    
+  </div>
 </nav>
 </template>

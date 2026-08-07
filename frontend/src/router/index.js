@@ -9,6 +9,7 @@ import AdminCompany from '../views/AdminCompany.vue'
 import AdminStudent from '../views/AdminStudent.vue'
 import CreateDrive from '../views/CompanyCreateDrive.vue'
 import AdminDrive from '../views/AdminDrives.vue'
+import CompanyDrives from '../views/CompanyDrives.vue'
 
 const routes=[
   {
@@ -50,6 +51,10 @@ const routes=[
     {
       path: '/company/create-drive',
       component: CreateDrive,
+    },
+    {
+      path: '/company/drives',
+      component: CompanyDrives,
     }
 
 ]

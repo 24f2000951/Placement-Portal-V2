@@ -272,7 +272,8 @@ def create_drive():
         deadline=deadline_date,
         location=data["location"],
         graduation_year=data["year"],
-        cid=company_profile.id
+        cid=company_profile.id,
+        status="pending"
     )
     db.session.add(drive)
     db.session.commit()
@@ -289,10 +290,6 @@ def get_admin_drives():
     drives = Job.query.all()
     drive_list = []
     for drive in drives:
-        print(f"DEBUG - Job ID: {drive.id}, CID saved in DB: {drive.cid}")
-        print(f"DEBUG - Company Object: {drive.company}")
-        if drive.company:
-            print(f"DEBUG - Linked User Object: {drive.company.user}")
         drive_list.append({
             "id": drive.id,
             "title": drive.jtitle,
@@ -345,23 +342,37 @@ def reject_drive(drive_id):
 
 
 
+
 @app.route('/api/company/drives', methods=['GET'])
 @jwt_required()
 def get_company_drives():
     current_user_id = int(get_jwt_identity())
-    
     user_account = User.query.get(current_user_id)
+    
     if not user_account or user_account.role != "company":
         return jsonify({"error": "Unauthorized access"}), 403
 
-    drives = Job.query.filter_by(cid=current_user_id).all()
-    drive_list = []
-    for drive in drives:
-        drive_list.append({
-            "title": drive.jtitle,
-            "deadline": drive.deadline.strftime("%Y-%m-%d"),
+    company_profile = user_account.company
+    if not company_profile:
+        return jsonify({"error": "Company profile not found"}), 404
+
+    jobs = Job.query.filter_by(cid=company_profile.id).all()
+    
+    job_list = []
+    for job in jobs:
+        job_list.append({
+            "id": job.id,
+            "title": job.jtitle,
+            "deadline": job.deadline.strftime("%Y-%m-%d"),
+            "location": job.location,
+            "salary": job.salary,
+            "status": job.status 
         })
-    return jsonify(drive_list), 200
+        
+    return jsonify(job_list), 200
+
+
+
 
 
 def create_admin():

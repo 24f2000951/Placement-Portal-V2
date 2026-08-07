@@ -15,6 +15,7 @@ const form=ref({
   deadline: "",
   location: "",
   year:"",
+  status:"pending"
 });
 
 const createDrive = async () => {
