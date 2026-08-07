@@ -87,6 +87,11 @@ def login():
             return jsonify({"error": "You have been blacklisted"}), 403
         if not user.is_approved:
             return jsonify({"error": "Please wait for approval"}), 403
+        
+    if user.role=="student":
+        if user.is_blacklisted:
+            return jsonify({"error": "You have been blacklisted"}), 403
+        
 
     access_token = create_access_token(identity=str(user.id))
     return jsonify({
@@ -171,38 +176,59 @@ def get_students():
 
     students = User.query.filter_by(role="student").all()
     student_list = []
+
+
     for student in students:
+        if student.is_approved:
+            status = "Approved"
+        elif student.is_blacklisted:
+            status = "Blacklisted"
         student_list.append({
             "id": student.id,
             "name": student.name,
             "email": student.email,
-            "is_approved": student.is_approved,
-            "is_blacklisted": student.is_blacklisted
+            "status":status,
         })
     return jsonify(student_list), 200
 
-@app.route('/api/company/profile',methods=['GET'])
+
+@app.route('/api/admin/students/<int:student_id>/approve', methods=['POST'])
 @jwt_required()
-def get_company_profile():
-    current_user_id = get_jwt_identity()
+def approve_student(student_id):
+    current_user_id = int(get_jwt_identity())
     user = User.query.get(current_user_id)
-    if user.role != "company":
+    if user.role != "admin":
         return jsonify({"error": "Unauthorized access"}), 403
 
-    company_profile = user.company
-    if not company_profile:
-        return jsonify({"error": "Company profile not found"}), 404
+    student = User.query.filter_by(id=student_id, role="student").first()
+    if not student:
+        return jsonify({"error": "Student not found"}), 404
 
-    return jsonify({
-        "name": user.name,
-        "email": user.email,
-        "website": company_profile.cwebsite,
-        "hrcontact": company_profile.hrcontact,
-        "is_approved": user.is_approved,
-        "is_blacklisted": user.is_blacklisted,
-        "website": company_profile.cwebsite,
-        "hrcontact": company_profile.hrcontact,
-    }), 200
+    student.is_approved = True
+    student.is_blacklisted = False
+    db.session.commit()
+
+    return jsonify({"message": "Student approved successfully"}), 200
+
+@app.route('/api/admin/students/<int:student_id>/reject', methods=['POST'])
+@jwt_required()
+def reject_student(student_id):
+    current_user_id = int(get_jwt_identity())
+    user = User.query.get(current_user_id)
+    if user.role != "admin":
+        return jsonify({"error": "Unauthorized access"}), 403
+
+    student = User.query.filter_by(id=student_id, role="student").first()
+    if not student:
+        return jsonify({"error": "Student not found"}), 404
+
+    student.is_blacklisted = True
+    student.is_approved = False
+    db.session.commit()
+    return jsonify({"message": "Student rejected and blacklisted successfully"}), 200
+
+
+
 
 def create_admin():
     existing_admin = User.query.filter_by(email="admin@gmail.com").first()

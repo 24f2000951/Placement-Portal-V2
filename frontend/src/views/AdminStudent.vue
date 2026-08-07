@@ -94,7 +94,7 @@ onMounted(() => {
     <span v-if="student.status === 'Blacklisted'" class="text-danger">
       {{ student.status }}
     </span>
-  </td>
+    </td>
       <td>
         <button class="btn btn-success btn-sm me-2" @click="approveStudent(student.id)">Approve</button>
         <button class="btn btn-danger btn-sm" @click="rejectStudent(student.id)">Reject</button>

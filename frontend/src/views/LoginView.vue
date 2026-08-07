@@ -40,7 +40,7 @@ const handleLogin = async()=>{
       if (message.toLowerCase().includes("blacklisted")) {
         errorMsg.value = message;
         warningMsg.value = "";
-      } else if (message.toLowerCase().includes("pending") || message.toLowerCase().includes("wait")) {
+      } else if (message.toLowerCase().includes("pending")) {
         warningMsg.value = message;
         errorMsg.value = ""; 
       } else {
