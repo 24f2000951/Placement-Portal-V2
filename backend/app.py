@@ -1,5 +1,6 @@
-from flask import Flask,request,jsonify,send_file
+from flask import Flask,request,jsonify,send_file,Response
 import io
+import os
 from flask_cors import CORS
 from database import db,User,Student,Company,Job,Company,Application
 from datetime import datetime,timezone
@@ -876,6 +877,19 @@ def place_applicant(application_id):
     except Exception as e:
         db.session.rollback()
         return jsonify({"error": "An error occurred while updating the status."}), 500
+
+@app.route('/api/generate-applications-report', methods=['GET'])
+# @jwt_required()
+def generate_applications_report():
+    from tasks import generate_application_csv
+    
+   
+    file_path = generate_application_csv()
+    
+    if file_path and os.path.exists(file_path):
+        return send_file(file_path, as_attachment=True, download_name="applications_report.csv")
+    else:
+        return jsonify({"error": "Report file could not be found or generated."}), 404
 
 def create_admin():
     existing_admin = User.query.filter_by(email="admin@gmail.com").first()

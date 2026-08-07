@@ -5,7 +5,9 @@ from email.mime.base import MIMEBase
 from email.mime.multipart import MIMEMultipart 
 from email.mime.text import MIMEText
 import smtplib 
-from database import db, User, Student, Company, Job, Application
+import csv
+import os
+from database import  User, Student, Company, Job, Application
 
 SERVER_SMTP_HOST = 'localhost'
 SERVER_SMTP_PORT = 1025
@@ -31,7 +33,6 @@ def send_email(to_address,subject,message,content="text",attachment=None):
         msg.attach(part)          
 
     s = smtplib.SMTP(host=SERVER_SMTP_HOST, port=SERVER_SMTP_PORT )
-    # s.login(SENDER_ADDRESS,SENDER_PASSWORD)
     s.send_message(msg)
     s.quit()
     return True
@@ -48,14 +49,41 @@ def daily_reminder():
     return "Daily reminder emails sent successfully."
 
 @celery_app.task
+def generate_application_csv():
+    applications = Application.query.all()
+    csv_filename = 'applications.csv'
+    
+    with open(csv_filename, mode='w', newline='', encoding='utf-8') as csv_file:
+        fieldnames = ['Application ID', 'Student Name', 'Company Name', 'Job Title', 'Status','Application Date']
+        writer = csv.DictWriter(csv_file, fieldnames=fieldnames)
+        
+        writer.writeheader()
+        for application in applications:
+            student = Student.query.get(application.sid)
+            job = Job.query.get(application.jid)
+            company = Company.query.get(job.cid) if job else None
+            
+            student_name = student.user.name if student and student.user else 'N/A'
+            company_name = company.user.name if company and company.user else 'N/A'
+            job_title = job.jtitle if job else 'N/A'
+            
+            writer.writerow({
+                'Application ID': application.id,
+                'Company Name': company_name,
+                'Job Title': job_title,
+                'Status': application.status,
+                'Application Date': application.application_date
+            })
+    
+    return os.path.abspath(csv_filename)
+    
+@celery_app.task
 def send_monthly_report():
     admin = User.query.filter_by(role="admin").first()
     
-    # Put EVERYTHING inside this block!
     if admin:
         users_list = User.query.all()
         
-        # Notice we use users=users_list to match {% for user in users %}
         html_report = render_template('monthly_report.html', users=users_list)
         
         send_email(admin.email, "Monthly User Report", html_report, content="html")
