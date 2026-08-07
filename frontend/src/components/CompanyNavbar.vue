@@ -24,7 +24,16 @@ const handleLogout = () => {
             <RouterLink class="nav-link custom-link" active-class="active-blue" to="/company/drives">Drives</RouterLink>
           </li>
       </ul>
-    <button class="btn btn-danger btn-sm fw-bold shadow-sm" @click="handleLogout">Logout</button>
+     <div class="d-flex align-items-center gap-2">
+
+        <button class="btn btn-outline-primary btn-sm" @click="router.push('/company/edit-profile')">
+          <i class="bi bi-person-gear me-1"></i> Edit Profile
+        </button>
+
+        <button class="btn btn-danger btn-sm fw-bold shadow-sm" @click="handleLogout">
+          Logout
+        </button>
+      </div>
     </div>
   </div>
 </nav>

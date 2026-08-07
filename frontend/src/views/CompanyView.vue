@@ -61,7 +61,7 @@ const approvedDrives = computed(() => {
 </script>
 
 <template>
-  <CompanyNavbar></CompanyNavbar>
+  <CompanyNavbar />
 
 <div class="container my-4">
 

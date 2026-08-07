@@ -62,6 +62,16 @@ def register():
         )
 
         db.session.add(company_profile)
+
+    elif role == 'student':
+        student_profile = Student(
+            user_id=user.id,
+            sdept="",         
+            scgpa=0.0,
+            sphone="",
+            passing_year=0
+        )
+        db.session.add(student_profile)
     db.session.commit()
 
     return jsonify({"message": "User registered successfully"}), 201
@@ -228,7 +238,7 @@ def reject_student(student_id):
     db.session.commit()
     return jsonify({"message": "Student rejected and blacklisted successfully"}), 200
 
-@app.route('/api/company/profile', methods=['GET'])
+@app.route('/api/company/profile', methods=['GET','PUT'])
 @jwt_required()
 def get_company_profile():
     current_user_id = int(get_jwt_identity())
@@ -236,15 +246,30 @@ def get_company_profile():
     if not company or company.role != "company":
         return jsonify({"error": "Unauthorized access"}), 403
 
-    return jsonify({
-        "id": company.id,
-        "name": company.name,
-        "email": company.email,
-        "company": {
-            "website": company.company.cwebsite,
-            "hrcontact": company.company.hrcontact
-        }
-    }), 200
+    if request.method=='GET':
+        return jsonify({
+            "id": company.id,
+            "name": company.name,
+            "email": company.email,
+            "company": {
+                "website": company.company.cwebsite,
+                "hrcontact": company.company.hrcontact
+            }
+        }), 200
+
+    if request.method == 'PUT':
+        data = request.get_json()
+        if not data:
+            return jsonify({"error": "No input data provided"}), 400
+
+
+        company.name = data.get('name', company.name)
+        company.company.cwebsite = data.get('website', company.company.cwebsite)
+        company.company.hrcontact = data.get('hrcontact', company.company.hrcontact)
+
+        db.session.commit()
+
+        return jsonify({"message": "Company profile updated successfully!"}), 200
 
 @app.route('/api/company/create-drive', methods=['POST'])
 @jwt_required()
@@ -405,6 +430,45 @@ def close_drive(drive_id):
     db.session.commit()
 
     return jsonify({"message": "Drive closed successfully"}), 200
+
+@app.route('/api/student/profile', methods=['GET','PUT'])
+@jwt_required()
+def get_student_profile():
+    current_user_id = int(get_jwt_identity())
+    student = User.query.get(current_user_id)
+    if not student or student.role != "student":
+        return jsonify({"error": "Unauthorized access"}), 403
+
+    if not student.student:
+        return jsonify({"error": "Student profile details not found. Please complete your profile."}), 404
+
+    if request.method=='GET':
+        return jsonify({
+            "id": student.id,
+            "name": student.name,
+            "email": student.email,
+            "student": {
+                        "dept": student.student.sdept,
+                        "cgpa": student.student.scgpa,
+                        "phone": student.student.sphone,
+                        "passing_year": student.student.passing_year
+                    }
+        }), 200
+
+    if request.method == 'PUT':
+        data = request.get_json()
+        if not data:
+            return jsonify({"error": "No input data provided"}), 400
+
+        student.name = data.get('name', student.name)
+        student.student.sdept = data.get('dept', student.student.sdept)
+        student.student.scgpa = data.get('cgpa', student.student.scgpa)
+        student.student.sphone = data.get('phone', student.student.sphone)
+        student.student.passing_year = data.get('passing_year', student.student.passing_year)
+
+        db.session.commit()
+
+        return jsonify({"message": "Profile updated successfully!"}), 200
 
 
 def create_admin():
