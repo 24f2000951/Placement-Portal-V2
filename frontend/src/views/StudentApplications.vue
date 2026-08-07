@@ -98,6 +98,7 @@ onMounted(fetchApplications);
   <div class="container my-4">
     <div class="d-flex justify-content-between align-items-center mb-4">
       <h3>Your Applications</h3>
+      <button @click="exportToCSV" class="btn btn-outline-primary">Export as csv</button>
     </div>
 
     <div class="card border-0">
@@ -155,7 +156,6 @@ onMounted(fetchApplications);
       </div>
     </div>
   </div>
-  <button @click="exportToCSV">Export as csv</button>
 
   <div class="modal fade" id="viewDriveModal" tabindex="-1" aria-hidden="true">
     <div class="modal-dialog modal-lg modal-dialog-centered">
