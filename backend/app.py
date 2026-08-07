@@ -1,7 +1,7 @@
 from flask import Flask,request,jsonify
 from flask_cors import CORS
 from database import db,User,Student,Company,Job,Company,Application
-from datetime import datetime
+from datetime import datetime,timezone
 from flask_jwt_extended import JWTManager, create_access_token, jwt_required, get_jwt_identity
 
 app=Flask(__name__)
@@ -470,6 +470,64 @@ def get_student_profile():
 
         return jsonify({"message": "Profile updated successfully!"}), 200
 
+@app.route('/api/student/drives', methods=['GET'])
+@jwt_required()
+def get_student_drives():
+    current_user_id = int(get_jwt_identity())
+    student = User.query.get(current_user_id)
+    if not student or student.role != "student":
+        return jsonify({"error": "Unauthorized access"}), 403
+
+    drives = Job.query.filter_by(status="approved").all()
+    drive_list = []
+    for drive in drives:
+        drive_list.append({
+            "id": drive.id,
+            "title": drive.jtitle,
+            "deadline": drive.deadline.strftime("%Y-%m-%d"),
+            "company": drive.company.user.name if drive.company and drive.company.user else "N/A",
+            "location": drive.location,
+            "salary": drive.salary,
+            "skills": drive.skills,
+            "allowed_branches": drive.allowed_branches,
+            "cgpa_criteria": drive.cgpa_criteria,
+            "graduation_year": drive.graduation_year,
+            "posted_on": drive.created_at.strftime("%Y-%m-%d") if hasattr(drive, 'created_at') and drive.created_at else "N/A",
+            "description": drive.jdesc,
+        })
+    return jsonify(drive_list), 200
+
+@app.route('/api/student/drives/<int:drive_id>/apply', methods=['POST'])
+@jwt_required()
+def apply_to_drive(drive_id):
+    current_user_id = int(get_jwt_identity())
+    user = User.query.get(current_user_id)
+    
+    if not user or user.role != "student":
+        return jsonify({"error": "Unauthorized access"}), 403
+
+    student_profile = user.student
+    if not student_profile:
+        return jsonify({"error": "Student profile not found"}), 404
+
+    drive = Job.query.get(drive_id)
+    if not drive:
+        return jsonify({"error": "Drive not found"}), 404
+
+    existing_application = Application.query.filter_by(sid=student_profile.id, jid=drive_id).first()
+    if existing_application:
+        return jsonify({"error": "You have already applied for this drive."}), 400
+
+    new_application = Application(
+        sid=student_profile.id,
+        jid=drive_id,
+        status="Applied",
+        application_date=datetime.now(timezone.utc).date()
+    )
+    db.session.add(new_application)
+    db.session.commit()
+
+    return jsonify({"message": "Application submitted successfully!"}), 200
 
 def create_admin():
     existing_admin = User.query.filter_by(email="admin@gmail.com").first()

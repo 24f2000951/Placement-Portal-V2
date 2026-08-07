@@ -91,7 +91,7 @@ onMounted(() => {
           <td>{{ new Date(drive.posted_on).toLocaleDateString("en-GB") }}</td>
           <td>{{ new Date(drive.deadline).toLocaleDateString("en-GB") }}</td>
 
-          <td class="align-middle">
+  <td class="align-middle">
   <div class="d-flex justify-content-center gap-2">
     <button 
       class="btn btn-outline-primary btn-sm" 
