@@ -82,8 +82,19 @@ def send_monthly_report():
     admin = User.query.filter_by(role="admin").first()
     
     if admin:
-        users_list = User.query.all()
-        
-        html_report = render_template('monthly_report.html', users=users_list)
+        drives= Job.query.filter(Job.status != "rejected").all()
+        drives_count = len(drives)
+
+        applications = Application.query.all()
+
+        unique_applied_sids = {app.sid for app in applications}
+        students_applied_count = len(unique_applied_sids)
+
+        unique_placed_sids = {app.sid for app in applications if app.status == "placed"}
+        students_placed_count = len(unique_placed_sids)
+
+       
+
+        html_report = render_template('monthly_report.html',drives=drives,drives_count=drives_count,students_applied_count=students_applied_count,students_placed_count=students_placed_count)
         
         send_email(admin.email, "Monthly User Report", html_report, content="html")

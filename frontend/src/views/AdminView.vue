@@ -29,7 +29,6 @@ onMounted(async () => {
       }
     });
     
-    // Axios automatically parses JSON into response.data
     const data = response.data;
     
     document.getElementById('stat-students').innerText = data.totals.students;
