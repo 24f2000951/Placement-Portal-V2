@@ -1,4 +1,4 @@
-from flask import Flask,request,jsonify,send_file,Response
+from flask import Flask,request,jsonify,send_file
 import io
 import os
 from flask_cors import CORS
@@ -119,6 +119,7 @@ def login():
     }), 200
 
 @app.route('/api/admin/', methods=['GET'])
+@cache.cached(timeout=60)
 @jwt_required()
 def admin_dashboard_charts_stats():
     total_students = Student.query.count()
@@ -155,7 +156,6 @@ def admin_dashboard_charts_stats():
 
 @app.route('/api/admin/companies',methods=['GET'])
 @jwt_required()
-# @cache.cached(timeout=60)
 def get_companies():
     current_user_id = get_jwt_identity()
     user = User.query.get(current_user_id)
@@ -221,7 +221,6 @@ def reject_company(company_id):
 
 @app.route('/api/admin/students',methods=['GET'])
 @jwt_required()
-@cache.cached(timeout=120)
 def get_students():
     current_user_id = get_jwt_identity()
     user = User.query.get(current_user_id)
@@ -360,7 +359,6 @@ def create_drive():
 
 @app.route('/api/admin/drives', methods=['GET'])
 @jwt_required()
-# @cache.cached(timeout=60)
 def get_admin_drives():
     current_user_id = int(get_jwt_identity())
     user = User.query.get(current_user_id)
@@ -583,7 +581,6 @@ def get_student_profile():
         return jsonify({"message": "Profile updated successfully!"}), 200
 
 @app.route('/api/student/drives', methods=['GET'])
-# @cache.cached(timeout=60)
 @jwt_required()
 def get_student_drives():
     current_user_id = int(get_jwt_identity())
@@ -732,7 +729,6 @@ def get_drive_applicants(drive_id):
     return jsonify(applicant_list), 200
 
 @app.route('/api/admin/applicants', methods=['GET'])
-# @cache.cached(timeout=60)
 @jwt_required()
 def get_all_applicants():
     current_user_id = int(get_jwt_identity())
