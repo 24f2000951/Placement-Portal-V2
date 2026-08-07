@@ -760,7 +760,7 @@ def schedule_interview(application_id):
     except ValueError:
         return jsonify({"error": "Invalid date format."}), 400
 
-    application.status = "scheduled"
+    application.status = "shortlisted"
     
     if hasattr(application, 'interview_date_time'):
         application.interview_date_time = interview_dt
@@ -799,7 +799,7 @@ def get_student_interviews():
     if not student:
         return jsonify({"error": "Student profile not found"}), 404
 
-    interviews = Application.query.filter_by(student=student, status='scheduled').all()
+    interviews = Application.query.filter_by(student=student, status='shortlisted').all()
     
     return jsonify([{
         "id": interview.id,

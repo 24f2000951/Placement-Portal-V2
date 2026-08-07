@@ -158,7 +158,7 @@ onMounted(() => {
               :class="{
                 'text-secondary': applicant?.status?.toLowerCase() === 'applied',
                 'text-danger': applicant?.status?.toLowerCase() === 'rejected',
-                'text-info': applicant?.status?.toLowerCase() === 'scheduled',
+                'text-info': applicant?.status?.toLowerCase() === 'shortlisted',
                 'text-success': applicant?.status?.toLowerCase() === 'placed',
               }"
             >
@@ -184,30 +184,34 @@ onMounted(() => {
               View Resume
             </button>
 
-            <button
-              v-if="applicant?.status?.toLowerCase() === 'scheduled'"
-              class="btn btn-warning btn-sm text-dark fw-bold"
-              @click="markAsPlaced(applicant.application_id)"
-            >
-              Place
-            </button>
+            <template v-if="applicant?.status?.toLowerCase() !== 'placed'">
+              
+              <button
+                v-if="applicant?.status?.toLowerCase() === 'shortlisted'"
+                class="btn btn-warning btn-sm text-dark fw-bold"
+                @click="markAsPlaced(applicant.application_id)"
+              >
+                Place
+              </button>
 
-            <button 
-              v-else
-              class="btn btn-success btn-sm" 
-              @click="selectedApplicant = applicant"
-              data-bs-toggle="modal" 
-              data-bs-target="#scheduleModal"
-            >
-              Schedule Interview
-            </button>
-            
-            <button
-              class="btn btn-danger btn-sm"
-              @click="rejectApplicant(applicant.application_id)"
-            >
-              Reject
-            </button>
+              <button 
+                v-else
+                class="btn btn-success btn-sm" 
+                @click="selectedApplicant = applicant"
+                data-bs-toggle="modal" 
+                data-bs-target="#scheduleModal"
+              >
+                Schedule Interview
+              </button>
+
+              <button
+                class="btn btn-danger btn-sm"
+                @click="rejectApplicant(applicant.application_id)"
+                :disabled="applicant?.status?.toLowerCase() === 'rejected'"
+              >
+                Reject
+              </button>
+            </template>
           </td>
         </tr>
 
