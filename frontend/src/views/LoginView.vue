@@ -1,20 +1,33 @@
 <script setup>
 import { ref } from "vue";
+import { useRouter } from "vue-router";
 import axios from "axios";
+
 const form = ref({
   email: "",
   password:""
 });
 
-const methods = {
-  async handleLogin() {
-    try {
-      await axios.post('http://localhost:3000/api/login', form.value);
-    } catch (error) {
-      console.error("Login failed", error);
-    }
+const router = useRouter();
+
+const handleLogin = async()=>{
+  try{
+    const response=await axios.post("http://localhost:5000/api/login",form.value);
+    console.log("Login successful",response.data);
+    localStorage.setItem("access_token",response.data.access_token);
+   
+    const userRole=response.data.role;
+    if (userRole==="admin")
+      router.push("/admin");
+    else if (userRole==="student")
+      router.push("/student");
+    else if (userRole==="company")
+      router.push("/company");
   }
-};
+  catch(error){
+    console.error("Login failed",error);
+  }
+}
 
 </script>
 <template>
@@ -31,7 +44,7 @@ const methods = {
             <h2 class="text-center mb-4">Login</h2>
             
             
-            <form @submit.prevent="methods.handleLogin" action="#" method="POST">
+            <form @submit.prevent="handleLogin" action="#" method="POST">
               
             
               <div class="mb-3">

@@ -15,7 +15,7 @@ db.init_app(app)
 
 CORS(app)  # Enable CORS for all routes
 
-@app.route('/register', methods=['POST'])
+@app.route('/api/register', methods=['POST'])
 def register():
     data=request.get_json()
     if not data:
@@ -35,16 +35,15 @@ def register():
 
     return jsonify({"message": "User registered successfully"}), 201
 
-@app.route('/login', methods=['POST'])
+@app.route('/api/login', methods=['POST'])
 def login():
     data=request.get_json()
     if not data:
         return jsonify({"error": "No input data provided"}), 400
     email=data.get('email')
     password=data.get('password')
-    role=data.get('role')
 
-    user=User.query.filter_by(email=email,role=role).first()
+    user=User.query.filter_by(email=email).first()
     if user and user.check_password(password):
         access_token=create_access_token(identity=user.id)
         return jsonify({"message": "Login successful", "access_token": access_token, "role": user.role}), 200
