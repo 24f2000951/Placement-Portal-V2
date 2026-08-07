@@ -703,6 +703,93 @@ def handle_resume():
             download_name=f"{user.name.replace(' ', '_')}_Resume.pdf"
         )
 
+@app.route('/api/company/student-resume/<int:student_id>', methods=['GET'])
+@jwt_required()
+def get_student_resume_for_company(student_id):
+    student = Student.query.get(student_id)
+    if not student or not student.resume:
+        return jsonify({"error": "Resume not found"}), 404
+
+    return send_file(
+        io.BytesIO(student.resume),
+        mimetype='application/pdf',
+        as_attachment=False,
+        download_name=f"Student_{student_id}_Resume.pdf"
+    )
+
+@app.route('/api/company/applicant/<int:application_id>/schedule', methods=['POST'])
+@jwt_required()
+def schedule_interview(application_id):
+    current_user_id = int(get_jwt_identity())
+    user = User.query.get(current_user_id)
+    
+    if not user or user.role != 'company':
+        return jsonify({"error": "Unauthorized access."}), 403
+
+    application = Application.query.get(application_id) 
+    if not application:
+        return jsonify({"error": "Application not found."}), 404
+
+    data = request.get_json()
+    dt_str = data.get('interview_date_time')
+    location = data.get('location')
+
+    if not dt_str or not location:
+        return jsonify({"error": "Date/Time and location are required."}), 400
+
+    try:
+        interview_dt = datetime.fromisoformat(dt_str)
+    except ValueError:
+        return jsonify({"error": "Invalid date format."}), 400
+
+    application.status = "scheduled"
+    
+    if hasattr(application, 'interview_date_time'):
+        application.interview_date_time = interview_dt
+    if hasattr(application, 'interview_location_link'):
+        application.interview_location_link = location
+    
+    db.session.commit()
+
+    return jsonify({"message": "Interview scheduled successfully!"}), 200
+
+@app.route('/api/company/applicant/<int:application_id>/reject', methods=['POST'])
+@jwt_required()
+def reject_applicant(application_id):
+    current_user_id = int(get_jwt_identity())
+    user = User.query.get(current_user_id)
+    
+    if not user or user.role != 'company':
+        return jsonify({"error": "Unauthorized access. Only companies can reject applications."}), 403
+
+    application = Application.query.get(application_id) 
+    if not application:
+        return jsonify({"error": "Application not found."}), 404
+
+    application.status = "rejected"
+    db.session.commit()
+
+    return jsonify({"message": "Application rejected successfully!"}), 200
+
+@app.route('/api/student/interviews', methods=['GET'])
+@jwt_required()
+def get_student_interviews():
+    current_user_id = int(get_jwt_identity())
+    user = User.query.get(current_user_id)
+    student = user.student if user else None
+
+    if not student:
+        return jsonify({"error": "Student profile not found"}), 404
+
+    interviews = Application.query.filter_by(student=student, status='scheduled').all()
+    
+    return jsonify([{
+        "id": interview.id,
+        "date_time": interview.interview_date_time.strftime('%Y-%m-%d %H:%M') if interview.interview_date_time else "TBD",
+        "location": interview.interview_location_link if hasattr(interview, 'interview_location_link') else "N/A",
+        "job_title": interview.job.jtitle if interview.job else "N/A",
+        "company_name": interview.job.company.user.name if interview.job and interview.job.company and interview.job.company.user else "N/A"
+    } for interview in interviews]), 200
 
 def create_admin():
     existing_admin = User.query.filter_by(email="admin@gmail.com").first()

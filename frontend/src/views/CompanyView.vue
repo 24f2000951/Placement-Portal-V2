@@ -9,7 +9,6 @@ const current_user = ref({});
 const drives = ref([]);
 const isLoggedIn = ref(false);
 
-
 const accessToken = localStorage.getItem("access_token");
   if (accessToken) {
     isLoggedIn.value = true;
@@ -18,10 +17,6 @@ const accessToken = localStorage.getItem("access_token");
 }
 
 const closeDrive = async (driveId) => {
-  if (!confirm("Are you sure you want to close this drive? This will prevent further applications.")) {
-    return;
-  }
-
   try {
     await axios.post(`/api/company/drives/${driveId}/close`, {}, {
       headers: { Authorization: `Bearer ${accessToken}` },

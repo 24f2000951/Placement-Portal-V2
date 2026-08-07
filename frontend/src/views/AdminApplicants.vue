@@ -77,7 +77,7 @@ onMounted(() => {
             <span :class="{
               'text-secondary': applicant?.status?.toLowerCase() === 'applied',
               'text-danger': applicant?.status?.toLowerCase() === 'rejected',
-              'text-info': applicant?.status?.toLowerCase() === 'shortlisted',
+              'text-info': applicant?.status?.toLowerCase() === 'scheduled',
               'text-success': applicant?.status?.toLowerCase() === 'placed',
             }">
               {{ applicant?.status ? applicant.status.charAt(0).toUpperCase() + applicant.status.slice(1).toLowerCase() : 'Pending'

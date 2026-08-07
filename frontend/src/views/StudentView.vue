@@ -14,6 +14,8 @@ const selectedDrive = ref(null);
 const appliedDrives = ref([]);
 const searchQuery = ref("");
 const isDownloading = ref(false);
+const interviews = ref([]);
+const isLoading = ref(true);
 
 const accessToken = localStorage.getItem("access_token");
 if (accessToken) {
@@ -54,6 +56,19 @@ const applyDrive = async (driveId) => {
   }
 };
 
+const fetchScheduledInterviews = async () => {
+  try {
+    const response = await axios.get('/api/student/interviews', {
+      headers: { Authorization: `Bearer ${accessToken}` }
+    });
+    interviews.value = response.data;
+  } catch (error) {
+    console.error('Error fetching interviews:', error);
+  } finally {
+    isLoading.value = false;
+  }
+};
+
 const handleSearch = (payload) => {
   if (typeof payload === 'string') {
     searchQuery.value = payload;
@@ -69,7 +84,7 @@ const downloadResume = async () => {
     isDownloading.value = true;
     const response = await axios.get('/api/student/resume', {
       headers: { Authorization: `Bearer ${accessToken}` },
-      responseType: 'blob'
+      responseType: 'blob' 
     });
 
     const blobUrl = window.URL.createObjectURL(new Blob([response.data]));
@@ -112,6 +127,7 @@ onMounted(() => {
       current_user.value = response.data;
     });
 });
+fetchScheduledInterviews();
 </script>
 
 <template>
@@ -196,6 +212,55 @@ onMounted(() => {
             </tbody>
           </table>
         </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="container my-4">
+    <h3 class="mb-4">My Scheduled Interviews</h3>
+
+    <div class="card shadow-sm border-0 p-3">
+      <div class="table-responsive">
+        <table class="table align-middle text-center mb-0">
+          <thead class="table">
+            <tr>
+              <th scope="col" class="text-start ps-3">S.No</th>
+              <th scope="col" class="text-start">Company</th>
+              <th scope="col" class="text-start">Role</th>
+              <th scope="col">Date & Time</th>
+              <th scope="col">Location / Meeting Link</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr v-for="(interview, index) in interviews" :key="interview.id">
+              <td class="text-start ps-3">{{ index + 1 }}</td>
+              <td class="text-start fw-bold">{{ interview.company_name }}</td>
+              <td class="text-start fw-bold">{{ interview.job_title }}</td>
+              <td>
+                <span class="fw-bold">
+                  {{ interview.date_time }}
+                </span>
+              </td>
+              <td>
+                <span class="fw-bold">
+                  {{ interview.location }}
+                </span>
+              </td>
+            </tr>
+
+            <tr v-if="!isLoading && interviews.length === 0">
+              <td colspan="5" class="text-center text-muted py-4">
+                No interviews scheduled yet.
+              </td>
+            </tr>
+
+            <tr v-if="isLoading">
+              <td colspan="5" class="text-center py-4">
+                <span class="spinner-border spinner-border-sm me-2"></span> Loading interviews...
+              </td>
+            </tr>
+          </tbody>
+        </table>
       </div>
     </div>
   </div>
