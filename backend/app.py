@@ -1,4 +1,5 @@
 from flask import Flask,request,jsonify
+from flask_cors import CORS
 from database import db,User
 
 app=Flask(__name__)
@@ -7,9 +8,15 @@ app.config["SQLALCHEMY_TRACK_MODIFICATIONS"] = False
 
 db.init_app(app)
 
-@app.route('/')
-def home():
-    return "Hello"
+CORS(app)  # Enable CORS for all routes
+
+@app.route('/api/data', methods=['GET'])
+def get_data():
+    data = {
+        'message': 'Hello from Flask!',
+        'items': [1, 2, 3, 4, 5]
+    }
+    return jsonify(data)
 
 
 def create_admin():
