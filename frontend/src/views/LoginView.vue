@@ -10,9 +10,12 @@ const form = ref({
   password:""
 });
 
-
+const errorMsg = ref("");
 
 const handleLogin = async()=>{
+
+  errorMsg.value="";
+  
   try{
     const response=await axios.post("/api/login",form.value);
     console.log("Login successful",response.data);
@@ -28,7 +31,8 @@ const handleLogin = async()=>{
   }
 
   catch(error){
-    console.error("Login failed",error);
+     console.error("Login failed", error);
+     errorMsg.value=error.response.data.error;
   }
 }
 
@@ -39,8 +43,12 @@ const handleLogin = async()=>{
 <div class="vh-100 d-flex align-items-center justify-content-center bg-light">
   
   <div class="container">
+    <div v-if="errorMsg" class="alert alert-danger alert-dismissible fade show" role="alert">
+      {{ errorMsg }}
+      <button type="button" class="btn-close" @click= "errorMsg = ''" aria-label="Close"></button>
+    </div>
     <div class="row justify-content-center">
-     
+
       <div class="col-md-6 col-lg-5 col-xl-4">
         
         <div class="card shadow-sm">

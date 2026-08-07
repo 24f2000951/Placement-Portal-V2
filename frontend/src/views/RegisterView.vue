@@ -1,6 +1,10 @@
 <script setup>
 import { ref } from "vue";
 import axios from "axios";
+import { useRouter } from "vue-router";
+const router = useRouter();
+
+const [successMsg,errorMsg] = [ref(""), ref("")];
 
 const form = ref({
   name: "",
@@ -10,22 +14,34 @@ const form = ref({
   company: ""
 });
 
-const methods = {
-  async handleRegister() {
-    try {
-      await axios.post(
-        "/api/register",
-        form.value
-      );
-      console.log("Registration sucessful",form.value);
+const handleRegister = async () => {
+  errorMsg.value = ""; 
+  successMsg.value = "";
 
-    } catch (error) {
-      console.error("Registration failed", error);
-    }
+  if (!form.value.name || !form.value.email || !form.value.password || !form.value.role) {
+    errorMsg.value = "Please fill out all required fields.";
+    return;
+  }
+
+  if (form.value.role === 'recruiter' && !form.value.company) {
+    errorMsg.value = "Please provide your company website.";
+    return;
+  }
+
+  try {
+    await axios.post("/api/register", form.value);
+    
+    successMsg.value = "Registration successful! Redirecting to login...";
+    
+    setTimeout(() => {
+      router.push("/login");
+    }, 1500);
+
+  } catch (error) {
+    console.error("Registration failed", error);
+    errorMsg.value=error.response.data.error;
   }
 };
-
-
 </script>
 
 <template>
@@ -33,7 +49,17 @@ const methods = {
   <div class="vh-100 d-flex align-items-center justify-content-center bg-light">
 
     <div class="container">
+      <div v-if="errorMsg" class="alert alert-danger alert-dismissible fade show" role="alert">
+      {{ errorMsg }}
+      <button type="button" class="btn-close" @click= "errorMsg = ''" aria-label="Close"></button>
+    </div>
+
+    <div v-if="successMsg" class="alert alert-success fade show mb-3" role="alert">
+            {{ successMsg }}
+      </div>
+
       <div class="row justify-content-center">
+      
 
         <div class="col-md-6 col-lg-5 col-xl-4">
 
@@ -42,7 +68,7 @@ const methods = {
               <h2 class="text-center mb-4">Register</h2>
 
 
-              <form @submit.prevent="methods.handleRegister" action="#" method="POST">
+              <form @submit.prevent="handleRegister" action="#" method="POST" novalidate>
                 <div class="mb-3">
                   <label for="nameInput" class="form-label">Full Name</label>
                   <input type="text" class="form-control" id="nameInput" v-model="form.name" required>

@@ -3,6 +3,8 @@ import HomeView from '../views/HomeView.vue'
 import LoginView from '../views/LoginView.vue'
 import RegisterView from '../views/RegisterView.vue'
 import AdminView from '../views/AdminView.vue'
+import CompanyView from '../views/CompanyView.vue'
+import StudentView from '../views/StudentView.vue'
 
 const routes=[
   {

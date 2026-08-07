@@ -27,6 +27,10 @@ def register():
 
     if not all([name,email,password,role]):
         return jsonify({"error": "Missing required fields"}), 400
+
+    existing_user=User.query.filter_by(email=email).first()
+    if existing_user:
+        return jsonify({"error": "User with this email already exists"}), 400
     
     user=User(name=name,email=email,role=role)
     user.set_password(password)
@@ -48,7 +52,7 @@ def login():
         access_token=create_access_token(identity=user.id)
         return jsonify({"message": "Login successful", "access_token": access_token, "role": user.role}), 200
     else:
-        return jsonify({"error": "Invalid credentials"}), 401
+        return jsonify({"error": "Invalid credentials or user not found"}), 401
 
 
 
