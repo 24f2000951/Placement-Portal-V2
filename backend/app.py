@@ -1,6 +1,6 @@
 from flask import Flask,request,jsonify
 from flask_cors import CORS
-from database import db,User,Student,Company,Job
+from database import db,User,Student,Company,Job,Company,Application
 from datetime import datetime
 from flask_jwt_extended import JWTManager, create_access_token, jwt_required, get_jwt_identity
 
@@ -272,7 +272,7 @@ def create_drive():
         deadline=deadline_date,
         location=data["location"],
         graduation_year=data["year"],
-        cid=current_user_id
+        cid=company_profile.id
     )
     db.session.add(drive)
     db.session.commit()
@@ -289,13 +289,61 @@ def get_admin_drives():
     drives = Job.query.all()
     drive_list = []
     for drive in drives:
+        print(f"DEBUG - Job ID: {drive.id}, CID saved in DB: {drive.cid}")
+        print(f"DEBUG - Company Object: {drive.company}")
+        if drive.company:
+            print(f"DEBUG - Linked User Object: {drive.company.user}")
         drive_list.append({
+            "id": drive.id,
             "title": drive.jtitle,
             "deadline": drive.deadline.strftime("%Y-%m-%d"),
             "company": drive.company.user.name if drive.company and drive.company.user else "N/A",
             "location": drive.location,
+            "salary": drive.salary,
+            "skills": drive.skills,
+            "allowed_branches": drive.allowed_branches,
+            "cgpa_criteria": drive.cgpa_criteria,
+            "graduation_year": drive.graduation_year,
+            "description": drive.jdesc,
+            "status": drive.status,
         })
     return jsonify(drive_list), 200
+
+@app.route('/api/admin/drives/<int:drive_id>/approve', methods=['POST'])
+@jwt_required()
+def approve_drive(drive_id):
+    current_user_id = int(get_jwt_identity())
+    user = User.query.get(current_user_id)
+    if user.role != "admin":
+        return jsonify({"error": "Unauthorized access"}), 403
+
+    drive = Job.query.get(drive_id)
+    if not drive:
+        return jsonify({"error": "Drive not found"}), 404
+
+    drive.status = "approved"
+    db.session.commit()
+
+    return jsonify({"message": "Drive approved successfully"}), 200
+
+@app.route('/api/admin/drives/<int:drive_id>/reject', methods=['POST'])
+@jwt_required()
+def reject_drive(drive_id):
+    current_user_id = int(get_jwt_identity())
+    user = User.query.get(current_user_id)
+    if user.role != "admin":
+        return jsonify({"error": "Unauthorized access"}), 403
+
+    drive = Job.query.get(drive_id)
+    if not drive:
+        return jsonify({"error": "Drive not found"}), 404
+
+    drive.status = "rejected"
+    db.session.commit()
+
+    return jsonify({"message": "Drive rejected successfully"}), 200
+
+
 
 @app.route('/api/company/drives', methods=['GET'])
 @jwt_required()

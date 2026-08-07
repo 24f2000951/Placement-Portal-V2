@@ -69,8 +69,6 @@ class Job(db.Model):
     graduation_year=db.Column(db.Integer,nullable=False)
     status = db.Column(db.String(20), default="pending")
     cid=db.Column(db.Integer,db.ForeignKey("companies.id"))
-    #blacklisting users
-    is_blacklisted = db.Column(db.Boolean, default=False)
     #Many to Many
     applications = db.relationship("Application", back_populates="job", cascade="all, delete-orphan")
     company = db.relationship("Company", backref="jobs") 
