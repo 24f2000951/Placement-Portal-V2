@@ -6,7 +6,6 @@ const emit = defineEmits(['search'])
 const searchQuery = ref('')
 
 const handleSearch = () => {
-  // Emits the current typed word to the parent component
   emit('search', searchQuery.value)
 }
 </script>

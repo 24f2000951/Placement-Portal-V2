@@ -5,6 +5,8 @@ import RegisterView from '../views/RegisterView.vue'
 import AdminView from '../views/AdminView.vue'
 import CompanyView from '../views/CompanyView.vue'
 import StudentView from '../views/StudentView.vue'
+import AdminCompany from '../views/AdminCompany.vue'
+import SearchBar from "@/components/SearchBar.vue";
 
 const routes=[
   {
@@ -24,6 +26,10 @@ const routes=[
       component: AdminView,
     },
     {
+      path: '/admin/companies',
+      component: AdminCompany,
+    },
+    {
       path: '/company',
       component: CompanyView,
     },
@@ -31,6 +37,7 @@ const routes=[
       path: '/student',
       component: StudentView,
     }
+
 
 ]
 

@@ -11,7 +11,8 @@ const form = ref({
   email: "",
   password: "",
   role: "",
-  company: ""
+  website: "",
+  hrcontact: ""
 });
 
 const handleRegister = async () => {
@@ -21,7 +22,7 @@ const handleRegister = async () => {
     return;
   }
 
-  if (form.value.role === 'recruiter' && !form.value.company) {
+  if (form.value.role === 'company' && !form.value.website) {
     errorMsg.value = "Please provide your company website.";
     return;
   }
@@ -89,13 +90,15 @@ const handleRegister = async () => {
                   <select class="form-select" id="roleSelect" v-model="form.role" required>
                     <option value="" selected disabled>Select role</option>
                     <option value="student">Student</option>
-                    <option value="recruiter">Recruiter</option>
+                    <option value="company">Recruiter</option>
                   </select>
                 </div>
 
-                <div class="mb-3" v-if="form.role === 'recruiter'">
-                  <label for="companyInput" class="form-label">Company Website</label>
-                  <input type="text" class="form-control" id="companyInput" v-model="form.company" placeholder="Enter your company website" required>
+                <div class="mb-3" v-if="form.role === 'company'">
+                  <label for="websiteInput" class="form-label">Company Website</label>
+                  <input type="text" class="form-control" id="websiteInput" v-model="form.website" placeholder="Enter NA if not available" required>
+                  <label for="hrContactInput" class="form-label">HR Contact</label>
+                  <input type="text" class="form-control" id="hrContactInput" v-model="form.hrcontact" placeholder="" required>
                 </div>
 
 
