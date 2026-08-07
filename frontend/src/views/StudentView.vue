@@ -25,6 +25,9 @@ const fetchDrives = async () => {
       headers: { Authorization: `Bearer ${accessToken}` }
     });
     drives.value = response.data;
+    appliedDrives.value = response.data
+      .filter(drive => drive.has_applied)
+      .map(drive => drive.id);
   } catch (error) {
     console.error('Error fetching drives:', error);
   }
@@ -42,8 +45,10 @@ const applyDrive = async (driveId) => {
     if (!appliedDrives.value.includes(driveId)) {
       appliedDrives.value.push(driveId);
     }
+
   } catch (error) {
     console.error('Error applying for drive:', error);
+    alert(error.response?.data?.error || 'Failed to apply for the drive.');
   }
 };
 
@@ -92,6 +97,7 @@ onMounted(() => {
             <thead>
               <tr>
                 <th scope="col" class="text-start ps-4">Job Title</th>
+                <th scope="col" class="text-start ps-4">Company</th>
                 <th scope="col">Date Posted</th>
                 <th scope="col" class="pe-4">Deadline</th>
                 <th scope="col" class="pe-4">Actions</th>
@@ -105,6 +111,7 @@ onMounted(() => {
 
               <tr v-for="drive in drives" :key="drive.id">
                 <td class="text-start ps-4 fw-bold">{{ drive.title }}</td>
+                <td class="text-start ps-4">{{ drive.company }}</td>
                <td>{{ new Date(drive.posted_on).toLocaleDateString("en-GB") }}</td>
                <td>{{ new Date(drive.deadline).toLocaleDateString("en-GB") }}</td>
                 <td class="align-middle">

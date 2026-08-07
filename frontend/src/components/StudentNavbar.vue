@@ -17,6 +17,15 @@ const handleLogout = () => {
     <RouterLink class="navbar-brand fw-bolder text-primary fs-4" to="/student">
         <i class="bi bi-briefcase-fill me-1"></i> HireHub
       </RouterLink>
+
+    <div class="collapse navbar-collapse" id="navbarSupportedContent">
+        
+      <ul class="navbar-nav me-auto mb-2 mb-lg-0 ms-lg-4">
+          <li class="nav-item">
+            <RouterLink class="nav-link custom-link" active-class="active-blue" to="/student/applications">Applications</RouterLink>
+          </li>
+      </ul>
+    </div>
     <div class="d-flex align-items-center gap-2">
 
         <button class="btn btn-outline-primary btn-sm" @click="router.push('/student/edit-profile')">

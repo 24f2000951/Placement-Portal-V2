@@ -474,9 +474,15 @@ def get_student_profile():
 @jwt_required()
 def get_student_drives():
     current_user_id = int(get_jwt_identity())
-    student = User.query.get(current_user_id)
-    if not student or student.role != "student":
+    user = User.query.get(current_user_id)
+    if not user or user.role != "student":
         return jsonify({"error": "Unauthorized access"}), 403
+
+    student_profile = user.student
+    if not student_profile:
+        return jsonify({"error": "Student profile not found"}), 404
+
+    applied_drive_ids = [app.jid for app in student_profile.applications]
 
     drives = Job.query.filter_by(status="approved").all()
     drive_list = []
@@ -494,6 +500,7 @@ def get_student_drives():
             "graduation_year": drive.graduation_year,
             "posted_on": drive.created_at.strftime("%Y-%m-%d") if hasattr(drive, 'created_at') and drive.created_at else "N/A",
             "description": drive.jdesc,
+            "has_applied": drive.id in applied_drive_ids
         })
     return jsonify(drive_list), 200
 
@@ -513,6 +520,12 @@ def apply_to_drive(drive_id):
     drive = Job.query.get(drive_id)
     if not drive:
         return jsonify({"error": "Drive not found"}), 404
+    if student_profile.scgpa < drive.cgpa_criteria:
+        return jsonify({"error": "You do not meet the CGPA criteria for this drive."}), 400
+    if student_profile.sdept not in drive.allowed_branches.split(','):
+        return jsonify({"error": "Your department is not eligible for this drive."}), 400
+    if student_profile.passing_year != drive.graduation_year:
+        return jsonify({"error": "Your graduation year does not match the drive's requirement."}), 400
 
     existing_application = Application.query.filter_by(sid=student_profile.id, jid=drive_id).first()
     if existing_application:
@@ -528,6 +541,46 @@ def apply_to_drive(drive_id):
     db.session.commit()
 
     return jsonify({"message": "Application submitted successfully!"}), 200
+
+@app.route('/api/student/applications', methods=['GET'])
+@jwt_required()
+def get_student_applications():
+    current_user_id = int(get_jwt_identity())
+    user = User.query.get(current_user_id)
+    
+    if not user or user.role != "student":
+        return jsonify({"error": "Unauthorized access"}), 403
+
+    student_profile = user.student
+    if not student_profile:
+        return jsonify({"error": "Student profile not found"}), 404
+
+    applications = Application.query.filter_by(sid=student_profile.id).all()
+    application_list = []
+    for application in applications:
+        drive = application.job
+        if drive:
+            company_name = "N/A"
+            if drive.company and drive.company.user:
+                company_name = drive.company.user.name
+            
+        application_list.append({
+                "application_id": application.id,
+                "drive_id": drive.id,
+                "title": drive.jtitle,
+                "company": company_name,
+                "status": application.status,
+                "application_date": application.application_date.strftime("%Y-%m-%d") if application.application_date else "N/A",
+                "description": drive.jdesc,
+                "location": drive.location,
+                "salary": drive.salary,
+                "skills": drive.skills,
+                "allowed_branches": drive.allowed_branches,
+                "cgpa_criteria": drive.cgpa_criteria,
+                "graduation_year": drive.graduation_year,
+                "deadline": drive.deadline.strftime("%Y-%m-%d") if drive.deadline else "N/A"
+            })
+    return jsonify(application_list), 200
 
 def create_admin():
     existing_admin = User.query.filter_by(email="admin@gmail.com").first()
