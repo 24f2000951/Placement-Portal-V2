@@ -26,9 +26,6 @@ const handleLogout = () => {
         
         <ul class="navbar-nav me-auto mb-2 mb-lg-0 ms-lg-4">
           <li class="nav-item">
-            <RouterLink class="nav-link custom-link" active-class="active-blue" to="/admin/dashboard">Dashboard</RouterLink>
-          </li>
-          <li class="nav-item">
             <RouterLink class="nav-link custom-link" active-class="active-blue" to="/admin/students">Students</RouterLink>
           </li>
           <li class="nav-item">

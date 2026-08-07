@@ -279,6 +279,24 @@ def create_drive():
 
     return jsonify({"message": "Drive created successfully"}), 201
 
+@app.route('/api/admin/drives', methods=['GET'])
+@jwt_required()
+def get_admin_drives():
+    current_user_id = int(get_jwt_identity())
+    user = User.query.get(current_user_id)
+    if user.role != "admin":
+        return jsonify({"error": "Unauthorized access"}), 403
+    drives = Job.query.all()
+    drive_list = []
+    for drive in drives:
+        drive_list.append({
+            "title": drive.jtitle,
+            "deadline": drive.deadline.strftime("%Y-%m-%d"),
+            "company": drive.company.user.name if drive.company and drive.company.user else "N/A",
+            "location": drive.location,
+        })
+    return jsonify(drive_list), 200
+
 @app.route('/api/company/drives', methods=['GET'])
 @jwt_required()
 def get_company_drives():
@@ -296,6 +314,7 @@ def get_company_drives():
             "deadline": drive.deadline.strftime("%Y-%m-%d"),
         })
     return jsonify(drive_list), 200
+
 
 def create_admin():
     existing_admin = User.query.filter_by(email="admin@gmail.com").first()

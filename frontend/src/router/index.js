@@ -8,7 +8,7 @@ import StudentView from '../views/StudentView.vue'
 import AdminCompany from '../views/AdminCompany.vue'
 import AdminStudent from '../views/AdminStudent.vue'
 import CreateDrive from '../views/CompanyCreateDrive.vue'
-
+import AdminDrive from '../views/AdminDrives.vue'
 
 const routes=[
   {
@@ -34,6 +34,10 @@ const routes=[
     {
       path: '/admin/students',
       component: AdminStudent,
+    },
+    {
+      path: '/admin/drives',
+      component:AdminDrive,
     },
     {
       path: '/company',

@@ -65,7 +65,7 @@ onMounted(() => {
 
 <div class="container my-4">
     <div class="d-flex justify-content-between align-items-center mb-3">
-      <h2>Placement Drives</h2>
+      <h2>Ongoing Placement Drives</h2>
       <button class="btn btn-success fw-bold" @click="router.push('/company/create-drive')">Create New Drive</button>
     </div>
 
