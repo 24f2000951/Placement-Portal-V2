@@ -1,15 +1,17 @@
 <script setup>
-import { ref, onMounted } from 'vue';
+import { ref, onMounted,computed } from 'vue';
 import AdminNavbar from '../components/AdminNavbar.vue';
 import axios from 'axios';
 import { useRouter } from 'vue-router';
 import ViewDrive from '../components/ViewDrive.vue';
+import SearchBar from '@/components/SearchBar.vue';
 
 const drives = ref([]);
 const router = useRouter()
 const isLoggedIn = ref(false);
 const accessToken = localStorage.getItem("access_token");
 const selectedDrive = ref(null);
+const searchQuery = ref("");
 
 const fetchDrives = async () => {
     try {
@@ -55,6 +57,23 @@ const rejectDrive = async (driveId) => {
     }
 };
 
+const handleSearch = (newQuery) => {
+  searchQuery.value = newQuery;
+}
+
+const filteredDrives = computed(() => {
+  if (!searchQuery.value) {
+    return drives.value; 
+  }
+  
+const lowerCaseSearch = searchQuery.value.toLowerCase();
+  
+  return drives.value.filter((drive) => {
+    return drive.title.toLowerCase().includes(lowerCaseSearch)
+  })
+})
+
+
 onMounted(() => {
     if (accessToken) {
         isLoggedIn.value = true;
@@ -68,6 +87,7 @@ onMounted(() => {
 
 <template>
     <AdminNavbar></AdminNavbar>
+    <SearchBar @search="handleSearch"/>
     <div class="container my-2">
         <table class="table table-borderless">
             <thead>
@@ -81,7 +101,7 @@ onMounted(() => {
                 </tr>
             </thead>
             <tbody>
-                <tr v-for="(drive, index) in drives" :key="drive.id">
+                <tr v-for="(drive, index) in filteredDrives" :key="drive.id">
                     <th scope="row">{{ index + 1 }}</th>
                     <td>{{ drive.title }}</td>
                     <td>{{ drive.company }}</td>

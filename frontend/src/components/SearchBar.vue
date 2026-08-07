@@ -24,10 +24,6 @@ const handleSearch = () => {
         @input="handleSearch"
       >
       
-      <button class="btn btn-primary px-4" type="submit" @click="handleSearch">
-        Search
-      </button>
-      
     </form>
     
   </div>

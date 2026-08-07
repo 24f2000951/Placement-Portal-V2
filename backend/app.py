@@ -198,6 +198,8 @@ def get_students():
             "id": student.id,
             "name": student.name,
             "email": student.email,
+            "branch": student.student.sdept if student.student else "N/A",
+            "phone":student.student.sphone if student.student else "N/A",
             "status":status,
         })
     return jsonify(student_list), 200
@@ -636,6 +638,40 @@ def get_drive_applicants(drive_id):
                 "application_date": application.application_date.strftime("%Y-%m-%d") if application.application_date else "N/A"
             })
     return jsonify(applicant_list), 200
+
+@app.route('/api/admin/applicants', methods=['GET'])
+@jwt_required()
+def get_all_applicants():
+    current_user_id = int(get_jwt_identity())
+    user_account = User.query.get(current_user_id)
+    
+    if not user_account or user_account.role != "admin":
+        return jsonify({"error": "Unauthorized access. Admins only."}), 403
+
+    applications = Application.query.all()
+    
+    applicant_list = []
+    
+    for app in applications:
+        student = app.student
+        job = app.job
+        company = job.company if job else None
+
+        if not student or not job:
+            continue
+
+        applicant_list.append({
+            "id": app.id,
+            "student_id": student.id,
+            "student_name": student.user.name if student.user else "N/A",
+            "job_title": job.jtitle,
+            "company_name": company.user.name if company else "Unknown",
+            "applied_on": app.application_date.strftime("%Y-%m-%d") if hasattr(app, 'application_date') and app.application_date else "N/A",
+            "status": app.status
+        })
+
+    return jsonify(applicant_list), 200
+
 
 def create_admin():
     existing_admin = User.query.filter_by(email="admin@gmail.com").first()

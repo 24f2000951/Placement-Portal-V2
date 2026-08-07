@@ -14,6 +14,7 @@ import StudentEditProfile from '../views/StudentEditProfile.vue'
 import CompanyEditProfile from '../views/CompanyEditProfile.vue'
 import StudentApplications from '../views/StudentApplications.vue'
 import CompanyApplicants from '../views/CompanyApplicants.vue'
+import AdminApplicants from '../views/AdminApplicants.vue'
 
 const routes=[
   {
@@ -43,6 +44,10 @@ const routes=[
     {
       path: '/admin/drives',
       component:AdminDrive,
+    },
+    {
+      path: '/admin/applications',
+      component:AdminApplicants,
     },
     {
       path: '/company',

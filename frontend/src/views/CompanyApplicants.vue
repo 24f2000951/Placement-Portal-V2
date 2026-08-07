@@ -33,30 +33,52 @@ onMounted(() => {
 
 <template>
   <CompanyNavbar />
-  <div class="container mt-4">
-    <table class="table mb-0 align-middle text-center w-100" style="table-layout: fixed;">
-      <thead>
-        <tr>
-          <th scope="col" class="text-start ps-4">Student Name</th>
-          <th scope="col">Email</th>
-          <th scope="col">Phone</th>
-          <th scope="col">CGPA</th>
-          <th scope="col">Branch</th>
-          <th scope="col" class="pe-4">Actions</th>
-        </tr>
-      </thead>
-      <tbody>
-        <tr v-for="applicant in applicants" :key="applicant.id">
-          <td class="text-start ps-4">{{ applicant.name }}</td>
-          <td>{{ applicant.email }}</td>
-          <td>{{ applicant.phone }}</td>
-          <td>{{ applicant.cgpa }}</td>
-          <td>{{ applicant.dept }}</td>
-          <td class="pe-4">
-            <button class="btn btn-outline-primary btn-sm">View Details</button>
+  <div class="container mt-2">
+        <table class="table table-borderless mb-0 align-middle text-center">
+          <thead class="table">
+            <tr>
+              <th scope="col" class="text-start ps-4">S.No</th>
+              <th scope="col" class="text-start ps-4">Name</th>
+              <th scope="col">Email</th>
+              <th scope="col">Phone</th>
+              <th scope="col">CGPA</th>
+              <th scope="col">Branch</th>
+              <th scope="col" class="pe-4">Status</th>
+            <th scope="col" class="pe-4">Actions</th>
+            </tr>
+          </thead>
+          
+          <tbody>
+            <tr v-for="(applicant,index) in applicants" :key="applicant.id">
+              <td class="text-start ps-4">{{ index + 1 }}</td>
+              <td class="text-start ps-4">{{ applicant.name }}</td>
+              <td>{{ applicant.email }}</td>
+              <td>{{ applicant.phone }}</td>
+              <td>{{ applicant.cgpa }}</td>
+              <td>{{ applicant.dept }}</td>
+             <td>
+            <span :class="{
+              'text-secondary': applicant?.status?.toLowerCase() === 'applied',
+              'text-danger': applicant?.status?.toLowerCase() === 'rejected',
+              'text-info': applicant?.status?.toLowerCase() === 'shortlisted',
+              'text-success': applicant?.status?.toLowerCase() === 'placed',
+            }">
+              {{ applicant?.status ? applicant.status.charAt(0).toUpperCase() + applicant.status.slice(1).toLowerCase() : 'Pending'
+              }}
+            </span>
           </td>
-        </tr>
-      </tbody>
-    </table>
-  </div>
+              
+                <td class="pe-4 gap-2 d-flex justify-content-center">
+                    <button class="btn btn-primary btn-sm" @click="router.push(`/company/drive/${driveId}/applicant/${applicant.id}`)">View Resume</button>
+                    <button class="btn btn-success btn-sm" @click="router.push(`/company/drive/${driveId}/applicant/${applicant.id}/schedule`)">Schedule Interview</button>
+                    <button class="btn btn-danger btn-sm" @click="router.push(`/company/drive/${driveId}/applicant/${applicant.id}/reject`)">Reject</button>
+                </td>
+            </tr>
+            
+            <tr v-if="applicants.length === 0">
+              <td colspan="6" class="text-center text-muted py-4">No applicants found for this drive.</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
 </template>

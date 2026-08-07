@@ -94,6 +94,7 @@ const lowerCaseSearch = searchQuery.value.toLowerCase();
       <th scope="col">Name</th>
       <th scope="col">Email</th>
       <th scope="col">Phone</th>
+      <th scope="col">Branch</th>
       <th scope="col">Status</th>
       <th scope="col">Action</th>
      </tr>
@@ -104,6 +105,7 @@ const lowerCaseSearch = searchQuery.value.toLowerCase();
       <td>{{ student.name }}</td>
       <td>{{ student.email }}</td>
       <td>{{ student.phone }}</td>
+      <td>{{ student.branch }}</td>
       <td>
     <span v-if="student.status === 'Approved'" class="text-success">
       {{ student.status }}
