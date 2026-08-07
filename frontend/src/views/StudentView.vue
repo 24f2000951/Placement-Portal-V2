@@ -13,6 +13,7 @@ const drives = ref([]);
 const selectedDrive = ref(null);
 const appliedDrives = ref([]);
 const searchQuery = ref("");
+const isDownloading = ref(false);
 
 const accessToken = localStorage.getItem("access_token");
 if (accessToken) {
@@ -63,6 +64,31 @@ const handleSearch = (payload) => {
   }
 };
 
+const downloadResume = async () => {
+  try {
+    isDownloading.value = true;
+    const response = await axios.get('/api/student/resume', {
+      headers: { Authorization: `Bearer ${accessToken}` },
+      responseType: 'blob' // CRITICAL: Tells Axios to expect a binary file
+    });
+
+    const blobUrl = window.URL.createObjectURL(new Blob([response.data]));
+    const link = document.createElement('a');
+    link.href = blobUrl;
+    link.setAttribute('download', 'My_Resume.pdf');
+    document.body.appendChild(link);
+    link.click();
+    
+    document.body.removeChild(link);
+    window.URL.revokeObjectURL(blobUrl);
+  } catch (error) {
+    console.error("Download failed:", error);
+    alert("No resume found or failed to download.");
+  } finally {
+    isDownloading.value = false;
+  }
+};
+
 const filteredDrives = computed(() => {
   if (!searchQuery.value) {
     return drives.value;
@@ -102,6 +128,13 @@ onMounted(() => {
           <h5>CGPA: {{ current_user.student?.cgpa }}</h5>
           <h5>Phone: {{ current_user.student?.phone }}</h5>
           <h5>Passing Year: {{ current_user.student?.passing_year }}</h5>
+          <button 
+          class="btn btn-primary" 
+          @click="downloadResume"
+          :disabled="isDownloading"
+        >
+          {{ isDownloading ? 'Downloading...' : 'View Resume' }}
+        </button>
         </div>
       </div>
     </div>

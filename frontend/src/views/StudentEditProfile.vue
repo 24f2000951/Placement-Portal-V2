@@ -9,6 +9,11 @@ const router = useRouter();
 const profileData = ref({});
 const accessToken = localStorage.getItem("access_token");
 
+
+if (!accessToken) {
+  router.push("/login");
+}
+
 const fetchProfile = async () => {
   try {
     const res = await axios.get('/api/student/profile', {

@@ -1,5 +1,6 @@
 <script setup>
 import { ref, watch } from 'vue';
+import axios from 'axios';
 
 const props = defineProps({
   role: {
@@ -25,6 +26,38 @@ watch(() => props.initialData, (newData) => {
 const handleSubmit = () => {
   emit('save', formData.value);
 };
+
+const isUploading = ref(false);
+const accessToken = localStorage.getItem("access_token");
+const uploadedFileName = ref('');
+
+const handleFileUpload = async (event) => {
+  if (props.role !== 'student') return;
+
+  const file = event.target.files[0];
+  if (!file) return;
+
+  const uploadData = new FormData();
+  uploadData.append('resume', file);
+
+  try {
+    isUploading.value = true;
+    const response = await axios.post('/api/student/resume', uploadData, {
+      headers: {
+        Authorization: `Bearer ${accessToken}`,
+        'Content-Type': 'multipart/form-data'
+      }
+    });
+    uploadedFileName.value = file.name;
+  } catch (error) {
+    console.error('Upload failed:', error);
+    alert(error.response?.data?.error || 'Upload failed.');
+  } finally {
+    isUploading.value = false;
+    event.target.value = ''; // Reset the file input so the same file can be uploaded again if needed
+  }
+};
+
 </script>
 
 <template>
@@ -57,6 +90,22 @@ const handleSubmit = () => {
         <div class="mb-3">
           <label class="form-label fw-bold">Passing Year</label>
           <input type="number" class="form-control" v-model="formData.passing_year" />
+        </div>
+
+        <div class="mb-3">
+          <label class="form-label fw-bold  small">Upload New Resume (PDF)</label>
+          <input 
+            type="file" 
+            class="form-control" 
+            accept=".pdf" 
+            @change="handleFileUpload" 
+            :disabled="isUploading"
+          />
+          <small v-if="isUploading" class="text-primary mt-1 d-block">Uploading resume...</small>
+          
+          <small v-else-if="uploadedFileName" class="text-success mt-1 d-block fw-bold">
+            ✓ Uploaded: {{ uploadedFileName }}
+          </small>
         </div>
       </template>
 

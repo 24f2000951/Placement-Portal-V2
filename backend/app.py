@@ -1,4 +1,5 @@
-from flask import Flask,request,jsonify
+from flask import Flask,request,jsonify,send_file
+import io
 from flask_cors import CORS
 from database import db,User,Student,Company,Job,Company,Application
 from datetime import datetime,timezone
@@ -671,6 +672,36 @@ def get_all_applicants():
         })
 
     return jsonify(applicant_list), 200
+
+@app.route('/api/student/resume', methods=['GET', 'POST'])
+@jwt_required()
+def handle_resume():
+    current_user_id = int(get_jwt_identity())
+    user = User.query.get(current_user_id)
+    student = user.student
+
+    if not student:
+        return jsonify({"error": "Student profile not found"}), 404
+
+    if request.method == 'POST':
+        file = request.files.get('resume')
+        if not file or not file.filename.lower().endswith('.pdf'):
+            return jsonify({"error": "Please upload a valid PDF file."}), 400
+        
+        student.resume = file.read()  # Save binary data to DB
+        db.session.commit()
+        return jsonify({"message": "Resume uploaded successfully!"}), 200
+    
+    if request.method == 'GET':
+        if not student.resume:
+            return jsonify({"error": "No resume found."}), 404
+        
+        return send_file(
+            io.BytesIO(student.resume),
+            mimetype='application/pdf',
+            as_attachment=True, # as_attachment=True makes it an easy download
+            download_name=f"{user.name.replace(' ', '_')}_Resume.pdf"
+        )
 
 
 def create_admin():
