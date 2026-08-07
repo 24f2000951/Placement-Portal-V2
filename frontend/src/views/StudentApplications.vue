@@ -69,6 +69,25 @@ const filteredApplications = computed(() => {
   });
 })
 
+const exportToCSV = async () => {
+  try {
+    const response = await axios.get('/api/generate-applications-report', {
+      headers: { Authorization: `Bearer ${accessToken}` },
+      responseType: 'blob'
+    });
+
+    const url = window.URL.createObjectURL(new Blob([response.data]));
+    const link = document.createElement('a');
+    link.href = url;
+    link.setAttribute('download', 'applications.csv');
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+  } catch (error) {
+    console.error('Error exporting applications:', error);
+  }
+};
+
 onMounted(fetchApplications);
 </script>
 
@@ -136,6 +155,7 @@ onMounted(fetchApplications);
       </div>
     </div>
   </div>
+  <button @click="exportToCSV">Export as csv</button>
 
   <div class="modal fade" id="viewDriveModal" tabindex="-1" aria-hidden="true">
     <div class="modal-dialog modal-lg modal-dialog-centered">

@@ -54,16 +54,14 @@ def generate_application_csv():
     csv_filename = 'applications.csv'
     
     with open(csv_filename, mode='w', newline='', encoding='utf-8') as csv_file:
-        fieldnames = ['Application ID', 'Student Name', 'Company Name', 'Job Title', 'Status','Application Date']
+        fieldnames = ['Application ID', 'Company Name', 'Job Title', 'Status','Application Date']
         writer = csv.DictWriter(csv_file, fieldnames=fieldnames)
         
         writer.writeheader()
         for application in applications:
-            student = Student.query.get(application.sid)
             job = Job.query.get(application.jid)
             company = Company.query.get(job.cid) if job else None
             
-            student_name = student.user.name if student and student.user else 'N/A'
             company_name = company.user.name if company and company.user else 'N/A'
             job_title = job.jtitle if job else 'N/A'
             
