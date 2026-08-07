@@ -1,0 +1,9 @@
+# Virtual environment
+.venv/
+
+# Flask instance folder
+instance/
+
+# Python cache
+__pycache__/
+*.py[cod]
