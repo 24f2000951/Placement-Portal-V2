@@ -1,5 +1,5 @@
 <script setup>
-import {ref,onMounted} from "vue";
+import {ref,onMounted,computed} from "vue";
 import AdminNavbar from "../components/AdminNavbar.vue";
 import { useRouter } from "vue-router";
 import axios from "axios";
@@ -63,11 +63,28 @@ onMounted(() => {
 });
 
 
+const handleSearch = (newQuery) => {
+  searchQuery.value = newQuery;
+}
+
+const filteredStudents = computed(() => {
+  if (!searchQuery.value) {
+    return students.value; 
+  }
+  
+const lowerCaseSearch = searchQuery.value.toLowerCase();
+  
+  return students.value.filter((student) => {
+    return student.name.toLowerCase().includes(lowerCaseSearch)
+  })
+})
+
+
 </script>
 
 <template>
       <AdminNavbar />
-      <SearchBar />
+      <SearchBar @search="handleSearch"/>
 
       <div class="container my-2">
       <table class="table table-borderless">
@@ -82,7 +99,7 @@ onMounted(() => {
      </tr>
   </thead>
   <tbody>
-    <tr v-for="(student, index) in students" :key="student.id">
+    <tr v-for="(student, index) in filteredStudents" :key="student.id">
       <th scope="row">{{ index + 1 }}</th>
       <td>{{ student.name }}</td>
       <td>{{ student.email }}</td>
@@ -101,7 +118,7 @@ onMounted(() => {
       </td>
     </tr>
 
-    <tr v-if="students.length === 0">
+    <tr v-if="filteredStudents.length === 0">
           <td colspan="5" class="text-center text-muted">No students found.</td>
     </tr>
 </tbody>

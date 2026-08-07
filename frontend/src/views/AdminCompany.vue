@@ -1,5 +1,5 @@
 <script setup>
-import {ref,onMounted} from "vue";
+import {ref,onMounted,computed} from "vue";
 import AdminNavbar from "../components/AdminNavbar.vue";
 import { useRouter } from "vue-router";
 import axios from "axios";
@@ -9,7 +9,7 @@ const isLoggedIn = ref(false);
 const router = useRouter();
 const companies = ref([]);
 const accessToken = localStorage.getItem("access_token");
-const searchQuery=ref("");
+const searchQuery=ref("")
 
 const fetchCompanies=async()=>{
     try{
@@ -62,12 +62,26 @@ onMounted(() => {
   }
 });
 
+const handleSearch = (newQuery) => {
+  searchQuery.value = newQuery;
+}
 
+const filteredCompanies = computed(() => {
+  if (!searchQuery.value) {
+    return companies.value; 
+  }
+  
+const lowerCaseSearch = searchQuery.value.toLowerCase();
+  
+  return companies.value.filter((company) => {
+    return company.name.toLowerCase().includes(lowerCaseSearch)
+  })
+})
 </script>
 
 <template>
       <AdminNavbar />
-      <SearchBar />
+      <SearchBar @search="handleSearch" />
 
       <div class="container my-2">
       <table class="table table-borderless">
@@ -82,7 +96,7 @@ onMounted(() => {
      </tr>
   </thead>
   <tbody>
-    <tr v-for="(company, index) in companies" :key="company.id">
+    <tr v-for="(company, index) in filteredCompanies" :key="company.id">
       <th scope="row">{{ index + 1 }}</th>
       <td>{{ company.name }}</td>
       <td>{{ company.website }}</td>
@@ -104,7 +118,7 @@ onMounted(() => {
       </td>
     </tr>
 
-    <tr v-if="companies.length === 0">
+    <tr v-if="filteredCompanies.length === 0">
           <td colspan="5" class="text-center text-muted">No companies found.</td>
     </tr>
 </tbody>

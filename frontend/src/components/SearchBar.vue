@@ -20,9 +20,11 @@ const handleSearch = () => {
         type="search"
         placeholder="Search"
         v-model="searchQuery" 
+        @keyup.enter="handleSearch"
+        @input="handleSearch"
       >
       
-      <button class="btn btn-primary px-4" type="submit">
+      <button class="btn btn-primary px-4" type="submit" @click="handleSearch">
         Search
       </button>
       
