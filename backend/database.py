@@ -36,6 +36,7 @@ class Student(db.Model):
     scgpa=db.Column(db.Float)
     sphone=db.Column(db.String)
     resume = db.Column(db.LargeBinary)
+    passing_year=db.Column(db.Integer)
     user_id=db.Column(db.Integer,db.ForeignKey("users.id"),nullable=False,unique=True)
 
     #one to one
@@ -63,8 +64,9 @@ class Job(db.Model):
     location=db.Column(db.String,nullable=False)
     salary=db.Column(db.Integer,nullable=False)
     skills=db.Column(db.String(200),nullable=False)
-    eligibility=db.Column(db.String(200),nullable=False)
+    allowed_branches=db.Column(db.String(200),nullable=False)
     cgpa_criteria=db.Column(db.Float,nullable=False)
+    graduation_year=db.Column(db.Integer,nullable=False)
     status = db.Column(db.String(20), default="pending")
     cid=db.Column(db.Integer,db.ForeignKey("companies.id"))
     #blacklisting users
@@ -79,6 +81,8 @@ class Application(db.Model):
     id=db.Column(db.Integer,primary_key=True,autoincrement=True)
     application_date = db.Column(db.Date)
     status = db.Column(db.String(20),nullable=False)
+    interview_date_time = db.Column(db.DateTime,nullable=True)
+    interview_location_link = db.Column(db.String(200),nullable=True)
 
     jid=db.Column(db.Integer,db.ForeignKey("jobs.id"))
     sid=db.Column(db.Integer,db.ForeignKey("students.id"))
