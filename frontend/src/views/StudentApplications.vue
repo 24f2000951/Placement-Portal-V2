@@ -1,14 +1,16 @@
 <script setup>
-import { ref, onMounted } from 'vue';
+import { ref, onMounted,computed } from 'vue';
 import { useRouter } from 'vue-router';
 import axios from 'axios';
 import StudentNavbar from '../components/StudentNavbar.vue';
 import ViewDrive from '../components/ViewDrive.vue';
+import SearchBar from '../components/SearchBar.vue';
 
 const router = useRouter();
 const applications = ref([]);
 const selectedDrive = ref(null);
 const accessToken = localStorage.getItem("access_token");
+const searchQuery = ref("");
 
 const fetchApplications = async () => {
   if (!accessToken) {
@@ -43,11 +45,36 @@ const viewDrive = (app) => {
   };
 };
 
+const handleSearch = (payload) => {
+  if (typeof payload === 'string') {
+    searchQuery.value = payload;
+  } else if (payload && payload.target) {
+    searchQuery.value = payload.target.value;
+  } else {
+    searchQuery.value = "";
+  }
+};
+
+const filteredApplications = computed(() => {
+  if (!searchQuery.value) {
+    return applications.value;
+  }
+  
+  const query = searchQuery.value.toLowerCase().trim();
+  
+  return applications.value.filter((app) => {
+    const titleMatch = app.title && app.title.toLowerCase().includes(query);
+    const companyMatch = app.company && app.company.toLowerCase().includes(query);
+    return titleMatch || companyMatch;
+  });
+})
+
 onMounted(fetchApplications);
 </script>
 
 <template>
   <StudentNavbar />
+ <SearchBar @search="handleSearch" placeholder="Search by job or company..." />
   
   <div class="container my-4">
     <div class="d-flex justify-content-between align-items-center mb-4">
@@ -69,13 +96,13 @@ onMounted(fetchApplications);
             </thead>
 
             <tbody>
-              <tr v-if="applications.length === 0">
+              <tr v-if="filteredApplications.length === 0">
                 <td colspan="5" class="text-center text-muted py-4">
                   You have not applied to any drives yet.
                 </td>
               </tr>
 
-              <tr v-for="app in applications" :key="app.application_id">
+              <tr v-for="app in filteredApplications" :key="app.application_id">
                 <td class="text-start ps-4 fw-bold">{{ app.title }}</td>
                 <td>{{ app.company }}</td>
                 <td>

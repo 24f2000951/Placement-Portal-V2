@@ -69,7 +69,7 @@ const downloadResume = async () => {
     isDownloading.value = true;
     const response = await axios.get('/api/student/resume', {
       headers: { Authorization: `Bearer ${accessToken}` },
-      responseType: 'blob' // CRITICAL: Tells Axios to expect a binary file
+      responseType: 'blob'
     });
 
     const blobUrl = window.URL.createObjectURL(new Blob([response.data]));

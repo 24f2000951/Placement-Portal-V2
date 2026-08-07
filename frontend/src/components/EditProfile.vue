@@ -54,7 +54,7 @@ const handleFileUpload = async (event) => {
     alert(error.response?.data?.error || 'Upload failed.');
   } finally {
     isUploading.value = false;
-    event.target.value = ''; // Reset the file input so the same file can be uploaded again if needed
+    event.target.value = ''; 
   }
 };
 
