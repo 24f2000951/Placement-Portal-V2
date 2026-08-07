@@ -3,6 +3,7 @@ import io
 from flask_cors import CORS
 from database import db,User,Student,Company,Job,Company,Application
 from datetime import datetime,timezone
+from flask_caching import Cache
 from flask_jwt_extended import JWTManager, create_access_token, jwt_required, get_jwt_identity
 
 app=Flask(__name__)
@@ -10,8 +11,12 @@ app=Flask(__name__)
 app.config["SQLALCHEMY_DATABASE_URI"] = "sqlite:///project.db"
 app.config["SQLALCHEMY_TRACK_MODIFICATIONS"] = False
 app.config["JWT_SECRET_KEY"] = "your-secret-key"
+app.config['CACHE_TYPE'] = 'RedisCache'
+app.config['CACHE_REDIS_URL'] = 'redis://localhost:6379/0'
 
 jwt = JWTManager(app)
+
+cache = Cache(app)
 
 db.init_app(app)
 
@@ -115,6 +120,7 @@ def login():
 
 @app.route('/api/admin/companies',methods=['GET'])
 @jwt_required()
+@cache.cached(timeout=60)
 def get_companies():
     current_user_id = get_jwt_identity()
     user = User.query.get(current_user_id)
@@ -180,6 +186,7 @@ def reject_company(company_id):
 
 @app.route('/api/admin/students',methods=['GET'])
 @jwt_required()
+@cache.cached(timeout=60)
 def get_students():
     current_user_id = get_jwt_identity()
     user = User.query.get(current_user_id)
@@ -310,6 +317,7 @@ def create_drive():
 
 @app.route('/api/admin/drives', methods=['GET'])
 @jwt_required()
+@cache.cached(timeout=60)
 def get_admin_drives():
     current_user_id = int(get_jwt_identity())
     user = User.query.get(current_user_id)
@@ -493,6 +501,7 @@ def get_student_profile():
         return jsonify({"message": "Profile updated successfully!"}), 200
 
 @app.route('/api/student/drives', methods=['GET'])
+@cache.cached(timeout=60)
 @jwt_required()
 def get_student_drives():
     current_user_id = int(get_jwt_identity())
@@ -641,6 +650,7 @@ def get_drive_applicants(drive_id):
     return jsonify(applicant_list), 200
 
 @app.route('/api/admin/applicants', methods=['GET'])
+@cache.cached(timeout=60)
 @jwt_required()
 def get_all_applicants():
     current_user_id = int(get_jwt_identity())
