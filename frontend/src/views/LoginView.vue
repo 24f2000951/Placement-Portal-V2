@@ -3,12 +3,14 @@ import { ref } from "vue";
 import { useRouter } from "vue-router";
 import axios from "axios";
 
+const router = useRouter();
+
 const form = ref({
   email: "",
   password:""
 });
 
-const router = useRouter();
+
 
 const handleLogin = async()=>{
   try{
@@ -24,12 +26,16 @@ const handleLogin = async()=>{
     else if (userRole==="company")
       router.push("/company");
   }
+
   catch(error){
     console.error("Login failed",error);
+
+
   }
 }
 
 </script>
+
 <template>
   
 <div class="vh-100 d-flex align-items-center justify-content-center bg-light">
@@ -46,7 +52,6 @@ const handleLogin = async()=>{
             
             <form @submit.prevent="handleLogin" action="#" method="POST">
               
-            
               <div class="mb-3">
                 <label for="emailInput" class="form-label">Email address</label>
                 <input type="email" class="form-control" id="emailInput" v-model="form.email" required>

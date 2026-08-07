@@ -50,6 +50,8 @@ def login():
     else:
         return jsonify({"error": "Invalid credentials"}), 401
 
+
+
 def create_admin():
     existing_admin = User.query.filter_by(email="admin@gmail.com").first()
     if not existing_admin:

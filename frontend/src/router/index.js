@@ -20,7 +20,16 @@ const routes=[
     {
       path: '/admin',
       component: AdminView,
+    },
+    {
+      path: '/company',
+      component: CompanyView,
+    },
+    {
+      path: '/student',
+      component: StudentView,
     }
+
 ]
 
 const router = createRouter({
