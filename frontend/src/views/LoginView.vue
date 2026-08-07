@@ -1,4 +1,20 @@
 <script setup>
+import { ref } from "vue";
+import axios from "axios";
+const form = ref({
+  email: "",
+  password:""
+});
+
+const methods = {
+  async handleLogin() {
+    try {
+      await axios.post('http://localhost:3000/api/login', form.value);
+    } catch (error) {
+      console.error("Login failed", error);
+    }
+  }
+};
 
 </script>
 <template>
@@ -15,18 +31,18 @@
             <h2 class="text-center mb-4">Login</h2>
             
             
-            <form action="#" method="POST">
+            <form @submit.prevent="methods.handleLogin" action="#" method="POST">
               
             
               <div class="mb-3">
                 <label for="emailInput" class="form-label">Email address</label>
-                <input type="email" class="form-control" id="emailInput" required>
+                <input type="email" class="form-control" id="emailInput" v-model="form.email" required>
               </div>
               
               
               <div class="mb-3">
                 <label for="passwordInput" class="form-label">Password</label>
-                <input type="password" class="form-control" id="passwordInput" required>
+                <input type="password" class="form-control" id="passwordInput" v-model="form.password" required>
               </div>
               
               <div class="d-grid mt-4 mb-3">
