@@ -3,6 +3,7 @@ import {ref} from "vue";
 import { useRouter } from "vue-router";
 const router = useRouter();
 import AdminNavbar from "../components/AdminNavbar.vue";
+import SearchBar from "@/components/SearchBar.vue";
 
 const isLoggedIn = ref(false);
 
@@ -19,4 +20,5 @@ const isLoggedIn = ref(false);
 
 <template>
       <AdminNavbar></AdminNavbar>
+      <SearchBar></SearchBar>
 </template>

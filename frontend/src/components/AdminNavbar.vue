@@ -41,14 +41,16 @@ const handleLogout = () => {
             <RouterLink class="nav-link custom-link" active-class="active-blue" to="/admin/drives">Drives</RouterLink>
           </li>
         </ul>
-    
-        <form class="d-flex me-lg-4 my-2 my-lg-0" @submit.prevent>
-          <input class="form-control me-2" type="search" placeholder="Search..." aria-label="Search">
-          <button class="btn btn-outline-primary" type="submit">Search</button>
-        </form>
-
+        
         <div class="d-flex align-items-center">
-          <i class="bi bi-person-circle fs-4 me-3 text-secondary"></i>
+          
+          <!-- User Logo and Name -->
+          <div class="d-flex align-items-center me-4">
+            <i class="bi bi-person-circle fs-4 text-primary me-2"></i>
+            <span class="fs-4 text-dark">Admin</span>
+          </div>
+
+          <!-- Logout Button -->
           <button class="btn btn-danger btn-sm fw-bold shadow-sm" @click="handleLogout">Logout</button>
         </div>
 

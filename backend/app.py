@@ -13,7 +13,7 @@ jwt = JWTManager(app)
 
 db.init_app(app)
 
-CORS(app)  # Enable CORS for all routes
+CORS(app)
 
 @app.route('/api/register', methods=['POST'])
 def register():
