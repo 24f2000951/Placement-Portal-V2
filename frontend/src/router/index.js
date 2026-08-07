@@ -13,6 +13,7 @@ import CompanyDrives from '../views/CompanyDrives.vue'
 import StudentEditProfile from '../views/StudentEditProfile.vue'
 import CompanyEditProfile from '../views/CompanyEditProfile.vue'
 import StudentApplications from '../views/StudentApplications.vue'
+import CompanyApplicants from '../views/CompanyApplicants.vue'
 
 const routes=[
   {
@@ -70,6 +71,10 @@ const routes=[
     {
       path: '/company/drives',
       component: CompanyDrives,
+    },
+    {
+      path: '/company/drive/:id/applicants',
+      component: CompanyApplicants,
     }
 
 ]

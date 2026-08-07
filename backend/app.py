@@ -378,7 +378,25 @@ def get_company_drives():
     if not company_profile:
         return jsonify({"error": "Company profile not found"}), 404
 
-    jobs = Job.query.filter_by(cid=company_profile.id).all()
+    drive_type = request.args.get('status', 'active').lower()
+
+    if drive_type == 'active':
+        jobs = Job.query.filter(
+            Job.cid == company_profile.id,
+            Job.status == "approved"
+        ).all()
+    elif drive_type in ['history', 'completed']:
+        jobs = Job.query.filter(
+            Job.cid == company_profile.id,
+            Job.status.in_(["closed", "rejected"])
+        ).all()
+    elif drive_type == 'pending':
+        jobs = Job.query.filter(
+            Job.cid == company_profile.id,
+            Job.status == "pending"
+        ).all()
+    else:
+        jobs = []
     
     job_list = []
     for job in jobs:
@@ -392,7 +410,8 @@ def get_company_drives():
             "skills": job.skills,                  
             "salary": job.salary,                  
             "location": job.location,              
-            "graduation_year": job.graduation_year,            
+            "graduation_year": job.graduation_year, 
+            "applicant_count": len(job.applications),           
             "deadline": job.deadline.strftime("%Y-%m-%d") if job.deadline else "N/A",
             "posted_on": job.created_at.strftime("%Y-%m-%d") if hasattr(job, 'created_at') and job.created_at else "N/A",
             "status": job.status
@@ -581,6 +600,42 @@ def get_student_applications():
                 "deadline": drive.deadline.strftime("%Y-%m-%d") if drive.deadline else "N/A"
             })
     return jsonify(application_list), 200
+
+@app.route('/api/company/drives/<int:drive_id>/applicants', methods=['GET'])
+@jwt_required()
+def get_drive_applicants(drive_id):
+    current_user_id = int(get_jwt_identity())
+    user_account = User.query.get(current_user_id)
+    
+    if not user_account or user_account.role != "company":
+        return jsonify({"error": "Unauthorized access"}), 403
+
+    company_profile = user_account.company
+    if not company_profile:
+        return jsonify({"error": "Company profile not found"}), 404
+
+    drive = Job.query.filter_by(id=drive_id, cid=company_profile.id).first()
+    if not drive:
+        return jsonify({"error": "Drive not found"}), 404
+
+    applications = Application.query.filter_by(jid=drive_id).all()
+    applicant_list = []
+    for application in applications:
+        student = application.student
+        if student:
+            applicant_list.append({
+                "application_id": application.id,
+                "student_id": student.id,
+                "name": student.user.name,
+                "email": student.user.email,
+                "dept": student.sdept,
+                "cgpa": student.scgpa,
+                "phone": student.sphone,
+                "passing_year": student.passing_year,
+                "status": application.status,
+                "application_date": application.application_date.strftime("%Y-%m-%d") if application.application_date else "N/A"
+            })
+    return jsonify(applicant_list), 200
 
 def create_admin():
     existing_admin = User.query.filter_by(email="admin@gmail.com").first()

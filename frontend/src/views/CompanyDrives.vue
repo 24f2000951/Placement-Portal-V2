@@ -14,7 +14,7 @@ const isLoggedIn = ref(false);
 
 const fetchDrives = async () => {
   try {
-    const response = await axios.get('/api/company/drives', {
+    const response = await axios.get('/api/company/drives?status=history', {
       headers: { Authorization: `Bearer ${accessToken}` },
     });
     drives.value = response.data;
@@ -78,9 +78,8 @@ onMounted(() => {
           <td>
             <span :class="{
               'text-secondary': drive?.status?.toLowerCase() === 'pending',
-              'text-success': drive?.status?.toLowerCase() === 'approved',
               'text-danger': drive?.status?.toLowerCase() === 'rejected',
-              'text-secondary': drive?.status?.toLowerCase() === 'closed'
+              'text-danger': drive?.status?.toLowerCase() === 'closed'
             }">
               {{ drive?.status ? drive.status.charAt(0).toUpperCase() + drive.status.slice(1).toLowerCase() : 'Pending'
               }}
@@ -100,13 +99,6 @@ onMounted(() => {
       data-bs-target="#viewDriveModal"
     >
       View Details
-    </button>
-
-    <button v-if="drive?.status?.toLowerCase() === 'approved' || drive?.status?.toLowerCase() === 'closed'"
-      class="btn btn-outline-info btn-sm" 
-      @click="router.push(`/company/drive/${drive.id}`)"
-    >
-      Applicants
     </button>
 
     <button 

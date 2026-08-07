@@ -7,7 +7,6 @@ import { useRouter } from 'vue-router';
 const router = useRouter();
 const current_user = ref({});
 const drives = ref([]);
-const total_applicants = ref(0);
 const isLoggedIn = ref(false);
 
 
@@ -45,7 +44,7 @@ onMounted(() => {
       current_user.value = response.data;
     });
 
-  axios.get('/api/company/drives', {
+  axios.get('/api/company/drives?status=active', {
     headers: { Authorization: `Bearer ${accessToken}` }
   })
     .then(response => {
@@ -104,18 +103,18 @@ const approvedDrives = computed(() => {
     <td class="text-start ps-4">{{ drive.title }}</td>
     
     
-    <td>{{ total_applicants[drive.id] || 0 }}</td>
+    <td>{{ drive.applicant_count || 0 }}</td>
     <td>{{ new Date(drive.posted_on).toLocaleDateString("en-GB") }}</td>
     <td>{{ new Date(drive.deadline).toLocaleDateString("en-GB") }}</td>
     
     <td class="pe-4">
-      <button class="btn btn-primary btn-sm me-2" @click="router.push(`/company/drive/${drive.id}`)">View Applicants</button>
+      <button class="btn btn-primary btn-sm me-2" @click="router.push(`/company/drive/${drive.id}/applicants`)">View Applicants</button>
       <button class="btn btn-danger btn-sm me-2" @click="closeDrive(drive.id)">Close Drive</button>
     </td>
 </tr>
 
 <tr v-if="approvedDrives.length === 0">
-      <td colspan="5" class="text-center text-muted py-4">No approved drives found.</td>
+      <td colspan="5" class="text-center text-muted py-4">No active or approved drives found.</td>
 </tr>
             </tbody>
           </table>
