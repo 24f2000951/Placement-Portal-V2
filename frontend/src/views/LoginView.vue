@@ -11,6 +11,7 @@ const form = ref({
 });
 
 const errorMsg = ref("");
+const warningMsg = ref("");
 
 const handleLogin = async()=>{
 
@@ -26,7 +27,12 @@ const handleLogin = async()=>{
     else if (userRole==="student")
       router.push("/student");
     else if (userRole==="company")
-      router.push("/company");
+      if (response.data.is_approved)
+        router.push("/company");
+      else if(response.data.is_blacklisted)
+        errorMsg.value="Your account has been blacklisted. Please contact support.";
+      else
+        warningMsg.value="Your account is pending approval. Please wait for admin approval.";
   }
 
   catch(error){
@@ -45,6 +51,10 @@ const handleLogin = async()=>{
     <div v-if="errorMsg" class="alert alert-danger alert-dismissible fade show" role="alert">
       {{ errorMsg }}
       <button type="button" class="btn-close" @click= "errorMsg = ''" aria-label="Close"></button>
+    </div>
+    <div v-if="warningMsg" class="alert alert-warning alert-dismissible fade show" role="alert">
+      {{ warningMsg }}
+      <button type="button" class="btn-close" @click= "warningMsg = ''" aria-label="Close"></button>
     </div>
     <div class="row justify-content-center">
 

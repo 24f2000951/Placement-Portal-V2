@@ -25,6 +25,34 @@ const fetchCompanies=async()=>{
     }
 }
 
+const approveCompany=async(companyId)=>{
+    try{
+        await axios.post(`/api/admin/companies/${companyId}/approve`,{},{
+            headers: {
+                Authorization: `Bearer ${accessToken}`
+            },
+        });
+        fetchCompanies();
+    }
+    catch(error){
+        console.error("Error approving company:", error);
+    }
+}
+
+const rejectCompany=async(companyId)=>{
+    try{
+        await axios.post(`/api/admin/companies/${companyId}/reject`,{},{
+            headers: {
+                Authorization: `Bearer ${accessToken}`
+            },
+        });
+        fetchCompanies();
+    }
+    catch(error){
+        console.error("Error rejecting company:", error);
+    }
+}
+
 onMounted(() => {
   if (accessToken) {
     isLoggedIn.value = true;
@@ -48,6 +76,7 @@ onMounted(() => {
       <th scope="col">S No</th>
       <th scope="col">Company</th>
       <th scope="col">Website</th>
+      <th scope="col">HR Contact</th>
       <th scope="col">Status</th>
       <th scope="col">Action</th>
      </tr>
@@ -57,6 +86,18 @@ onMounted(() => {
       <th scope="row">{{ index + 1 }}</th>
       <td>{{ company.name }}</td>
       <td>{{ company.website }}</td>
+      <td>{{ company.hrcontact }}</td>
+     <td>
+    <span v-if="company.status === 'Pending'" class="text-warning">
+      {{ company.status }}
+    </span>
+    <span v-else-if="company.status === 'Approved'" class="text-success">
+      {{ company.status }}
+    </span>
+    <span v-else-if="company.status === 'Blacklisted'" class="text-danger">
+      {{ company.status }}
+    </span>
+  </td>
       <td>
         <button class="btn btn-success btn-sm me-2" @click="approveCompany(company.id)">Approve</button>
         <button class="btn btn-danger btn-sm" @click="rejectCompany(company.id)">Reject</button>

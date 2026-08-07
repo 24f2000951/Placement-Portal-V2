@@ -65,11 +65,16 @@ def login():
     password=data.get('password')
 
     user=User.query.filter_by(email=email).first()
+
+    if user.role == "company" and not user.is_approved:
+        return jsonify({"error": "Please wait for approval"}), 403
+
     if user and user.check_password(password):
         access_token=create_access_token(identity=str(user.id))
         return jsonify({"message": "Login successful", "access_token": access_token, "role": user.role}), 200
     else:
         return jsonify({"error": "Invalid credentials or user not found"}), 401
+    
 
 @app.route('/api/admin/companies',methods=['GET'])
 @jwt_required()
@@ -85,17 +90,81 @@ def get_companies():
         
         company_profile = recruiter.company 
 
+        if recruiter.is_approved:
+            status = "Approved"
+        elif recruiter.is_blacklisted:
+            status = "Blacklisted"
+        else:
+            status = "Pending"
+
         company_list.append({
             "id": recruiter.id, 
             "name": recruiter.name, 
             "email": recruiter.email,
-            "website": company_profile.cwebsite if company_profile else 'N/A',
-            "status": "Pending" 
+            "website": company_profile.cwebsite,
+            "hrcontact": company_profile.hrcontact,
+            "status": status,
         })
         
     return jsonify(company_list), 200
 
+@app.route('/api/admin/companies/<int:company_id>/approve', methods=['POST'])
+@jwt_required()
+def approve_company(company_id):
+    current_user_id = int(get_jwt_identity())
+    user = User.query.get(current_user_id)
+    if user.role != "admin":
+        return jsonify({"error": "Unauthorized access"}), 403
 
+    company = User.query.filter_by(id=company_id, role="company").first()
+    if not company:
+        return jsonify({"error": "Company not found"}), 404
+
+    company.is_approved = True
+    company.is_blacklisted = False
+    db.session.commit()
+
+    return jsonify({"message": "Company approved successfully"}), 200
+
+@app.route('/api/admin/companies/<int:company_id>/reject', methods=['POST'])
+@jwt_required()
+def reject_company(company_id):
+    current_user_id = int(get_jwt_identity())
+    user = User.query.get(current_user_id)
+    if user.role != "admin":
+        return jsonify({"error": "Unauthorized access"}), 403
+
+    company = User.query.filter_by(id=company_id, role="company").first()
+    if not company:
+        return jsonify({"error": "Company not found"}), 404
+
+    company.is_blacklisted = True
+    company.is_approved = False
+    db.session.commit()
+    return jsonify({"message": "Company rejected and blacklisted successfully"}), 200
+
+@app.route('/api/company/profile',methods=['GET'])
+@jwt_required()
+def get_company_profile():
+    current_user_id = get_jwt_identity()
+    user = User.query.get(current_user_id)
+    if user.role != "company":
+        return jsonify({"error": "Unauthorized access"}), 403
+
+    company_profile = user.company
+    if not company_profile:
+        return jsonify({"error": "Company profile not found"}), 404
+
+    return jsonify({
+        "name": user.name,
+        "email": user.email,
+        "website": company_profile.cwebsite,
+        "hrcontact": company_profile.hrcontact,
+        "is_approved": user.is_approved,
+        "is_blacklisted": user.is_blacklisted,
+        "website": company_profile.cwebsite,
+        "hrcontact": company_profile.hrcontact,
+    }), 200
 
 def create_admin():
     existing_admin = User.query.filter_by(email="admin@gmail.com").first()
