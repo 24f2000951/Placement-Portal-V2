@@ -340,9 +340,6 @@ def reject_drive(drive_id):
 
     return jsonify({"message": "Drive rejected successfully"}), 200
 
-
-
-
 @app.route('/api/company/drives', methods=['GET'])
 @jwt_required()
 def get_company_drives():
@@ -360,19 +357,54 @@ def get_company_drives():
     
     job_list = []
     for job in jobs:
+
         job_list.append({
             "id": job.id,
             "title": job.jtitle,
-            "deadline": job.deadline.strftime("%Y-%m-%d"),
-            "location": job.location,
-            "salary": job.salary,
-            "status": job.status 
+            "description": job.jdesc,              
+            "cgpa_criteria": job.cgpa_criteria,             
+            "allowed_branches": job.allowed_branches,      
+            "skills": job.skills,                  
+            "salary": job.salary,                  
+            "location": job.location,              
+            "graduation_year": job.graduation_year,            
+            "deadline": job.deadline.strftime("%Y-%m-%d") if job.deadline else "N/A",
+            "posted_on": job.created_at.strftime("%Y-%m-%d") if hasattr(job, 'created_at') and job.created_at else "N/A",
+            "status": job.status
         })
-        
+
+    
     return jsonify(job_list), 200
 
+@app.route("/api/company/drives/<int:drive_id>", methods=["DELETE"])
+def delete_job(drive_id):
+    job = Job.query.get_or_404(drive_id)
+    db.session.delete(job)
+    db.session.commit()
 
+    return jsonify({"message": "Job deleted successfully"}), 200
 
+@app.route('/api/company/drives/<int:drive_id>/close', methods=['POST'])
+@jwt_required()
+def close_drive(drive_id):
+    current_user_id = int(get_jwt_identity())
+    user_account = User.query.get(current_user_id)
+    
+    if not user_account or user_account.role != "company":
+        return jsonify({"error": "Unauthorized access"}), 403
+
+    company_profile = user_account.company
+    if not company_profile:
+        return jsonify({"error": "Company profile not found"}), 404
+
+    job = Job.query.filter_by(id=drive_id, cid=company_profile.id).first()
+    if not job:
+        return jsonify({"error": "Job not found"}), 404
+
+    job.status = "closed"
+    db.session.commit()
+
+    return jsonify({"message": "Drive closed successfully"}), 200
 
 
 def create_admin():

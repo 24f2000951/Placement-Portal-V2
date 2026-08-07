@@ -18,6 +18,25 @@ const accessToken = localStorage.getItem("access_token");
     router.push("/login");
 }
 
+const closeDrive = async (driveId) => {
+  if (!confirm("Are you sure you want to close this drive? This will prevent further applications.")) {
+    return;
+  }
+
+  try {
+    await axios.post(`/api/company/drives/${driveId}/close`, {}, {
+      headers: { Authorization: `Bearer ${accessToken}` },
+    });
+    const response = await axios.get('/api/company/drives', {
+      headers: { Authorization: `Bearer ${accessToken}` }
+    });
+    drives.value = response.data;
+  } catch (error) {
+    console.error('Error closing drive:', error);
+    alert('Failed to close the drive.');
+  }
+};
+
 onMounted(() => {
   axios.get('/api/company/profile', {
     headers: { Authorization: `Bearer ${accessToken}` }
@@ -73,9 +92,9 @@ const approvedDrives = computed(() => {
             <thead>
               <tr>
                 <th scope="col" class="text-start ps-4">Job Title</th>
-                <th scope="col">Status</th>
                 <th scope="col">Applicants</th>
-                <th scope="col">Deadline</th>
+                <th scope="col">Date Posted</th>
+                <th scope="col" class="pe-4">Deadline</th>
                 <th scope="col" class="pe-4">Actions</th>
               </tr>
             </thead>
@@ -84,16 +103,14 @@ const approvedDrives = computed(() => {
               <tr v-for="drive in approvedDrives" :key="drive.id">
     <td class="text-start ps-4">{{ drive.title }}</td>
     
-    <td class="text-success">
-        {{ drive?.status ? drive.status.charAt(0).toUpperCase() + drive.status.slice(1).toLowerCase() : 'Approved' }}
-    </td>
     
     <td>{{ total_applicants[drive.id] || 0 }}</td>
-    <td>{{ new Date(drive.deadline).toLocaleDateString() }}</td>
+    <td>{{ new Date(drive.posted_on).toLocaleDateString("en-GB") }}</td>
+    <td>{{ new Date(drive.deadline).toLocaleDateString("en-GB") }}</td>
     
     <td class="pe-4">
       <button class="btn btn-primary btn-sm me-2" @click="router.push(`/company/drive/${drive.id}`)">View Applicants</button>
-      <button class="btn btn-danger btn-sm me-2" @click="router.push(`/company/drive/${drive.id}/close`)">Close Drive</button>
+      <button class="btn btn-danger btn-sm me-2" @click="closeDrive(drive.id)">Close Drive</button>
     </td>
 </tr>
 

@@ -1,6 +1,7 @@
 from flask_sqlalchemy import SQLAlchemy
 from datetime import date
 from werkzeug.security import generate_password_hash,check_password_hash
+from sqlalchemy.sql import func
 
 db = SQLAlchemy()
 
@@ -68,6 +69,7 @@ class Job(db.Model):
     cgpa_criteria=db.Column(db.Float,nullable=False)
     graduation_year=db.Column(db.Integer,nullable=False)
     status = db.Column(db.String(20), default="pending")
+    created_at = db.Column(db.DateTime(timezone=True), server_default=func.now())
     cid=db.Column(db.Integer,db.ForeignKey("companies.id"))
     #Many to Many
     applications = db.relationship("Application", back_populates="job", cascade="all, delete-orphan")
