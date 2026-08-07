@@ -14,7 +14,6 @@ const errorMsg = ref("");
 
 const handleLogin = async()=>{
 
-  errorMsg.value="";
   
   try{
     const response=await axios.post("/api/login",form.value);

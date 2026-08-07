@@ -15,8 +15,6 @@ const form = ref({
 });
 
 const handleRegister = async () => {
-  errorMsg.value = ""; 
-  successMsg.value = "";
 
   if (!form.value.name || !form.value.email || !form.value.password || !form.value.role) {
     errorMsg.value = "Please fill out all required fields.";

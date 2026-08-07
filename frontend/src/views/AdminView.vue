@@ -2,6 +2,7 @@
 import {ref} from "vue";
 import { useRouter } from "vue-router";
 const router = useRouter();
+import AdminNavbar from "../components/AdminNavbar.vue";
 
 const isLoggedIn = ref(false);
 
@@ -17,5 +18,5 @@ const isLoggedIn = ref(false);
 </script>
 
 <template>
-        <h1>Admin View</h1>
+      <AdminNavbar></AdminNavbar>
 </template>
