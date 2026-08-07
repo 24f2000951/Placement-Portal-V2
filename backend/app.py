@@ -120,7 +120,7 @@ def login():
 
 @app.route('/api/admin/companies',methods=['GET'])
 @jwt_required()
-@cache.cached(timeout=60)
+# @cache.cached(timeout=60)
 def get_companies():
     current_user_id = get_jwt_identity()
     user = User.query.get(current_user_id)
@@ -186,7 +186,7 @@ def reject_company(company_id):
 
 @app.route('/api/admin/students',methods=['GET'])
 @jwt_required()
-@cache.cached(timeout=60)
+# @cache.cached(timeout=60)
 def get_students():
     current_user_id = get_jwt_identity()
     user = User.query.get(current_user_id)
@@ -202,6 +202,13 @@ def get_students():
             status = "Approved"
         elif student.is_blacklisted:
             status = "Blacklisted"
+
+    placement_status = "Unplaced"
+    if student.student and hasattr(student.student, 'applications'):
+        is_placed = any(app.status == 'placed' for app in student.student.applications)
+        if is_placed:
+            placement_status = "Placed"
+        
         student_list.append({
             "id": student.id,
             "name": student.name,
@@ -209,6 +216,7 @@ def get_students():
             "branch": student.student.sdept if student.student else "N/A",
             "phone":student.student.sphone if student.student else "N/A",
             "status":status,
+            "placement_status": placement_status
         })
     return jsonify(student_list), 200
 
@@ -317,7 +325,7 @@ def create_drive():
 
 @app.route('/api/admin/drives', methods=['GET'])
 @jwt_required()
-@cache.cached(timeout=60)
+# @cache.cached(timeout=60)
 def get_admin_drives():
     current_user_id = int(get_jwt_identity())
     user = User.query.get(current_user_id)
@@ -501,7 +509,7 @@ def get_student_profile():
         return jsonify({"message": "Profile updated successfully!"}), 200
 
 @app.route('/api/student/drives', methods=['GET'])
-@cache.cached(timeout=60)
+# @cache.cached(timeout=60)
 @jwt_required()
 def get_student_drives():
     current_user_id = int(get_jwt_identity())
@@ -650,7 +658,7 @@ def get_drive_applicants(drive_id):
     return jsonify(applicant_list), 200
 
 @app.route('/api/admin/applicants', methods=['GET'])
-@cache.cached(timeout=60)
+# @cache.cached(timeout=60)
 @jwt_required()
 def get_all_applicants():
     current_user_id = int(get_jwt_identity())
@@ -800,6 +808,35 @@ def get_student_interviews():
         "job_title": interview.job.jtitle if interview.job else "N/A",
         "company_name": interview.job.company.user.name if interview.job and interview.job.company and interview.job.company.user else "N/A"
     } for interview in interviews]), 200
+
+@app.route('/api/company/applicant/<int:application_id>/place', methods=['POST'])
+@jwt_required()
+def place_applicant(application_id):
+    current_user_id = int(get_jwt_identity())
+    user_account = User.query.get(current_user_id)
+    
+    if not user_account or user_account.role != "company":
+        return jsonify({"error": "Unauthorized access"}), 403
+
+    company_profile = user_account.company
+    if not company_profile:
+        return jsonify({"error": "Company profile not found"}), 404
+
+    application = Application.query.get(application_id)
+    if not application:
+        return jsonify({"error": "Application not found"}), 404
+
+    drive = Job.query.get(application.jid)
+    if not drive or drive.cid != company_profile.id:
+        return jsonify({"error": "You do not have permission to modify this application"}), 403
+
+    try:
+        application.status = 'placed'
+        db.session.commit()
+        return jsonify({"message": "Applicant placed successfully!"}), 200
+    except Exception as e:
+        db.session.rollback()
+        return jsonify({"error": "An error occurred while updating the status."}), 500
 
 def create_admin():
     existing_admin = User.query.filter_by(email="admin@gmail.com").first()

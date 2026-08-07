@@ -64,6 +64,25 @@ const rejectApplicant = async (applicantId) => {
   }
 }
 
+const markAsPlaced = async (applicantId) => {
+  if (!confirm("Are you sure you want to mark this student as Placed?")) return;
+
+  try {
+    await axios.post(
+      `/api/company/applicant/${applicantId}/place`,
+      {},
+      {
+        headers: { Authorization: `Bearer ${accessToken}` },
+      }
+    )
+    alert("Student marked as Placed successfully!")
+    fetchApplicants()
+  } catch (error) {
+    console.error('Error updating placement status:', error)
+    alert(error.response?.data?.error || 'Failed to update status.')
+  }
+}
+
 const viewResume = async (studentId) => {
   if (!studentId) return
 
@@ -164,7 +183,17 @@ onMounted(() => {
               ></span>
               View Resume
             </button>
+
+            <button
+              v-if="applicant?.status?.toLowerCase() === 'scheduled'"
+              class="btn btn-warning btn-sm text-dark fw-bold"
+              @click="markAsPlaced(applicant.application_id)"
+            >
+              Place
+            </button>
+
             <button 
+              v-else
               class="btn btn-success btn-sm" 
               @click="selectedApplicant = applicant"
               data-bs-toggle="modal" 
@@ -172,6 +201,7 @@ onMounted(() => {
             >
               Schedule Interview
             </button>
+            
             <button
               class="btn btn-danger btn-sm"
               @click="rejectApplicant(applicant.application_id)"

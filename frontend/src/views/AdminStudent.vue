@@ -107,6 +107,14 @@ const lowerCaseSearch = searchQuery.value.toLowerCase();
       <td>{{ student.phone }}</td>
       <td>{{ student.branch }}</td>
       <td>
+        <span v-if="student.placement_status === 'Placed'" class="text-success">
+          {{ student.placement_status }}
+        </span>
+        <span v-else class="text-muted">
+          {{ student.placement_status }}
+        </span>
+      </td>
+      <td>
     <span v-if="student.status === 'Approved'" class="text-success">
       {{ student.status }}
     </span>
