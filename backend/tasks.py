@@ -1,4 +1,5 @@
 from celery_worker import celery_app
+from flask import render_template
 from email import encoders
 from email.mime.base import MIMEBase
 from email.mime.multipart import MIMEMultipart 
@@ -45,3 +46,16 @@ def daily_reminder():
                 message = f"Hello {user.name},\n\nThis is your daily reminder to check the latest job postings and updates on our platform. Don't miss out on any opportunities!\n\nBest regards,\nPlacement Portal Team"
                 send_email(user.email, "Daily Reminder", message)
     return "Daily reminder emails sent successfully."
+
+@celery_app.task
+def send_monthly_report():
+    admin = User.query.filter_by(role="admin").first()
+    
+    # Put EVERYTHING inside this block!
+    if admin:
+        users_list = User.query.all()
+        
+        # Notice we use users=users_list to match {% for user in users %}
+        html_report = render_template('monthly_report.html', users=users_list)
+        
+        send_email(admin.email, "Monthly User Report", html_report, content="html")

@@ -14,10 +14,10 @@ celery_app.Task = FlaskTask
 celery_app.conf.timezone = 'Asia/Kolkata'
 
 celery_app.conf.beat_schedule = {
-    # 'monthly_user_report': {
-    #     'task': 'tasks.send_user_report',
-    #     'schedule': crontab(minute=18, hour=20, day_of_month=27),
-    # },
+    'monthly_user_report': {
+        'task': 'tasks.send_monthly_report',
+        'schedule': 20.0,
+    },
     'daily_remainder':{
         'task': 'tasks.daily_reminder',
         'schedule': crontab(hour=23, minute=30),
