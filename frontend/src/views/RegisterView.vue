@@ -2,8 +2,6 @@
 import { ref } from "vue";
 import axios from "axios";
 
-
-
 const form = ref({
   name: "",
   email: "",
@@ -16,7 +14,7 @@ const methods = {
   async handleRegister() {
     try {
       await axios.post(
-        "http://localhost:3000/api/register",
+        "/api/register",
         form.value
       );
       console.log("Registration sucessful",form.value);

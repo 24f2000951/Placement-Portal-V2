@@ -14,7 +14,7 @@ const form = ref({
 
 const handleLogin = async()=>{
   try{
-    const response=await axios.post("http://localhost:5000/api/login",form.value);
+    const response=await axios.post("/api/login",form.value);
     console.log("Login successful",response.data);
     localStorage.setItem("access_token",response.data.access_token);
    
@@ -29,8 +29,6 @@ const handleLogin = async()=>{
 
   catch(error){
     console.error("Login failed",error);
-
-
   }
 }
 
