@@ -367,23 +367,6 @@ def approve_drive(drive_id):
 
     return jsonify({"message": "Drive approved successfully"}), 200
 
-@app.route('/api/admin/drives/<int:drive_id>/reject', methods=['POST'])
-@jwt_required()
-def reject_drive(drive_id):
-    current_user_id = int(get_jwt_identity())
-    user = User.query.get(current_user_id)
-    if user.role != "admin":
-        return jsonify({"error": "Unauthorized access"}), 403
-
-    drive = Job.query.get(drive_id)
-    if not drive:
-        return jsonify({"error": "Drive not found"}), 404
-
-    drive.status = "rejected"
-    db.session.commit()
-
-    return jsonify({"message": "Drive rejected successfully"}), 200
-
 @app.route('/api/company/drives', methods=['GET'])
 @jwt_required()
 def get_company_drives():
@@ -397,29 +380,32 @@ def get_company_drives():
     if not company_profile:
         return jsonify({"error": "Company profile not found"}), 404
 
-    drive_type = request.args.get('status', 'active').lower()
+    requested_types = [s.lower() for s in request.args.getlist('status')]
 
-    if drive_type == 'active':
+    if not requested_types:
+        requested_types = ['active']
+
+    db_statuses_to_fetch = []
+    
+    if 'active' in requested_types:
+        db_statuses_to_fetch.append("approved")
+        
+    if 'pending' in requested_types:
+        db_statuses_to_fetch.append("pending")
+        
+    if 'history' in requested_types or 'completed' in requested_types:
+        db_statuses_to_fetch.extend(["closed", "rejected"])
+
+    if db_statuses_to_fetch:
         jobs = Job.query.filter(
             Job.cid == company_profile.id,
-            Job.status == "approved"
-        ).all()
-    elif drive_type in ['history', 'completed']:
-        jobs = Job.query.filter(
-            Job.cid == company_profile.id,
-            Job.status.in_(["closed", "rejected"])
-        ).all()
-    elif drive_type == 'pending':
-        jobs = Job.query.filter(
-            Job.cid == company_profile.id,
-            Job.status == "pending"
+            Job.status.in_(db_statuses_to_fetch)
         ).all()
     else:
         jobs = []
     
     job_list = []
     for job in jobs:
-
         job_list.append({
             "id": job.id,
             "title": job.jtitle,
@@ -436,8 +422,8 @@ def get_company_drives():
             "status": job.status
         })
 
-    
     return jsonify(job_list), 200
+
 
 @app.route("/api/company/drives/<int:drive_id>", methods=["DELETE"])
 def delete_job(drive_id):
@@ -446,6 +432,59 @@ def delete_job(drive_id):
     db.session.commit()
 
     return jsonify({"message": "Job deleted successfully"}), 200
+
+@app.route("/api/company/drives/<int:drive_id>", methods=["GET"])
+def get_job(drive_id):
+    job = Job.query.get_or_404(drive_id)
+    return jsonify({
+        "id": job.id,
+        "title": job.jtitle,
+        "description": job.jdesc,
+        "cgpa_criteria": job.cgpa_criteria,
+        "allowed_branches": job.allowed_branches,
+        "skills": job.skills,
+        "salary": job.salary,
+        "location": job.location,
+        "graduation_year": job.graduation_year,
+        "deadline": job.deadline.strftime("%Y-%m-%d") if job.deadline else "N/A",
+        "posted_on": job.created_at.strftime("%Y-%m-%d") if hasattr(job, 'created_at') and job.created_at else "N/A",
+        "status": job.status
+    }), 200     
+
+@app.route("/api/company/edit-drive/<int:drive_id>", methods=["POST"])
+@jwt_required()
+def edit_drive(drive_id):
+    current_user_id = int(get_jwt_identity())
+    user_account = User.query.get(current_user_id)
+
+    if not user_account or user_account.role != "company":
+        return jsonify({"error": "Unauthorized access"}), 403
+
+    company_profile = user_account.company
+    if not company_profile:
+        return jsonify({"error": "Company profile not found"}), 404
+
+    job = Job.query.filter_by(id=drive_id, cid=company_profile.id).first()
+    if not job:
+        return jsonify({"error": "Job not found"}), 404
+
+    data = request.get_json()
+    if not data:
+        return jsonify({"error": "No input data provided"}), 400
+
+    job.jtitle = data.get("title", job.jtitle)
+    job.jdesc = data.get("description", job.jdesc)
+    job.cgpa_criteria = data.get("cgpa", job.cgpa_criteria)
+    job.allowed_branches = data.get("branches", job.allowed_branches)
+    job.skills = data.get("skills", job.skills)
+    job.salary = data.get("salary", job.salary)
+    job.location = data.get("location", job.location)
+    job.graduation_year = data.get("year", job.graduation_year)
+    job.deadline = datetime.strptime(data.get("deadline", job.deadline), "%Y-%m-%d").date() if data.get("deadline") else job.deadline
+
+    db.session.commit()
+
+    return jsonify({"message": "Drive updated successfully"}), 200
 
 @app.route('/api/company/drives/<int:drive_id>/close', methods=['POST'])
 @jwt_required()

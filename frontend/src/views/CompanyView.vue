@@ -1,5 +1,5 @@
 <script setup>
-import { ref, onMounted,computed } from 'vue';
+import { ref, onMounted, computed } from 'vue';
 import axios from 'axios';
 import CompanyNavbar from '../components/CompanyNavbar.vue';
 import { useRouter } from 'vue-router';
@@ -10,21 +10,29 @@ const drives = ref([]);
 const isLoggedIn = ref(false);
 
 const accessToken = localStorage.getItem("access_token");
-  if (accessToken) {
-    isLoggedIn.value = true;
-  } else {
-    router.push("/login");
+if (accessToken) {
+  isLoggedIn.value = true;
+} else {
+  router.push("/login");
 }
+
+const fetchDrives = async () => {
+  try {
+    const response = await axios.get('/api/company/drives?status=active&status=pending', {
+      headers: { Authorization: `Bearer ${accessToken}` }
+    });
+    drives.value = response.data;
+  } catch (error) {
+    console.error('Error fetching drives:', error);
+  }
+};
 
 const closeDrive = async (driveId) => {
   try {
     await axios.post(`/api/company/drives/${driveId}/close`, {}, {
       headers: { Authorization: `Bearer ${accessToken}` },
     });
-    const response = await axios.get('/api/company/drives', {
-      headers: { Authorization: `Bearer ${accessToken}` }
-    });
-    drives.value = response.data;
+    await fetchDrives();
   } catch (error) {
     console.error('Error closing drive:', error);
     alert('Failed to close the drive.');
@@ -39,19 +47,31 @@ onMounted(() => {
       current_user.value = response.data;
     });
 
-  axios.get('/api/company/drives?status=active', {
-    headers: { Authorization: `Bearer ${accessToken}` }
-  })
-    .then(response => {
-      drives.value = response.data;
+
+  fetchDrives();
+});
+
+const currentDrives = computed(() => {
+    return drives.value.filter(drive => drive?.status?.toLowerCase() === 'approved' || drive?.status?.toLowerCase() === 'pending');
+});
+
+const deleteDrive = async (driveId) => {
+  if (!confirm("Are you sure you want to delete this drive? This will also remove associated applications.")) {
+    return;
+  }
+
+  try {
+    await axios.delete(`/api/company/drives/${driveId}`, {
+      headers: { Authorization: `Bearer ${accessToken}` },
     });
-});
-
-const approvedDrives = computed(() => {
-    return drives.value.filter(drive => drive?.status?.toLowerCase() === 'approved');
-});
-
-
+    
+    await fetchDrives();
+    
+  } catch (error) {
+    console.error('Error deleting drive:', error);
+    alert('Failed to delete the drive.');
+  }
+};
 </script>
 
 <template>
@@ -94,7 +114,7 @@ const approvedDrives = computed(() => {
             </thead>
             
             <tbody>
-              <tr v-for="drive in approvedDrives" :key="drive.id">
+              <tr v-for="drive in currentDrives" :key="drive.id">
     <td class="text-start ps-4">{{ drive.title }}</td>
     
     
@@ -102,13 +122,18 @@ const approvedDrives = computed(() => {
     <td>{{ new Date(drive.posted_on).toLocaleDateString("en-GB") }}</td>
     <td>{{ new Date(drive.deadline).toLocaleDateString("en-GB") }}</td>
     
-    <td class="pe-4">
+    <td v-if="drive.status === 'approved'" class="pe-4">
       <button class="btn btn-primary btn-sm me-2" @click="router.push(`/company/drive/${drive.id}/applicants`)">View Applicants</button>
       <button class="btn btn-danger btn-sm me-2" @click="closeDrive(drive.id)">Close Drive</button>
     </td>
+    
+    <td v-else-if="drive.status === 'pending'" class="pe-4">
+       <button class="btn btn-primary btn-sm me-2" @click="router.push(`/company/drive/${drive.id}/edit`)">Edit</button>
+       <button class="btn btn-danger btn-sm me-2" @click="deleteDrive(drive.id)">Delete</button>
+    </td>
 </tr>
 
-<tr v-if="approvedDrives.length === 0">
+<tr v-if="currentDrives.length === 0">
       <td colspan="5" class="text-center text-muted py-4">No active or approved drives found.</td>
 </tr>
             </tbody>

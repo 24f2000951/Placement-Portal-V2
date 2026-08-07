@@ -6,3 +6,5 @@ __pycache__/
 instance
 Changes.txt
 celerybeat-schedule*
+dump.rdb
+applications.csv
