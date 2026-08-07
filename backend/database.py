@@ -62,6 +62,9 @@ class Job(db.Model):
     deadline = db.Column(db.Date, nullable=False)
     location=db.Column(db.String,nullable=False)
     salary=db.Column(db.Integer,nullable=False)
+    skills=db.Column(db.String(200),nullable=False)
+    eligibility=db.Column(db.String(200),nullable=False)
+    cgpa_criteria=db.Column(db.Float,nullable=False)
     status = db.Column(db.String(20), default="pending")
     cid=db.Column(db.Integer,db.ForeignKey("companies.id"))
     #blacklisting users
