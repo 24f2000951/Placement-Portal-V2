@@ -129,12 +129,12 @@ def admin_dashboard_charts_stats():
     placed_students_count = db.session.query(Application.sid).filter(
         (Application.status == 'placed') | (Application.status == 'selected')
     ).distinct().count()
-    
+
+    unplaced_students_count = total_students - placed_students_count
     placement_rate = (placed_students_count / total_students * 100) if total_students > 0 else 0.0
     
-    pending_apps = Application.query.filter_by(status='pending').count()
     accepted_apps = Application.query.filter_by(status='placed').count()
-    rejected_apps = Application.query.filter_by(status='rejected').count()
+
     
     return jsonify({
         "totals": {
@@ -146,9 +146,9 @@ def admin_dashboard_charts_stats():
             "placement_rate": round(placement_rate, 2)
         },
         "applications_breakdown": {
-            "pending": pending_apps,
             "accepted": accepted_apps,
-            "rejected": rejected_apps
+            "unplaced": unplaced_students_count
+
         }
     }), 200
     
@@ -221,7 +221,7 @@ def reject_company(company_id):
 
 @app.route('/api/admin/students',methods=['GET'])
 @jwt_required()
-# @cache.cached(timeout=60)
+@cache.cached(timeout=120)
 def get_students():
     current_user_id = get_jwt_identity()
     user = User.query.get(current_user_id)
@@ -238,21 +238,21 @@ def get_students():
         elif student.is_blacklisted:
             status = "Blacklisted"
 
-    placement_status = "Unplaced"
-    if student.student and hasattr(student.student, 'applications'):
-        is_placed = any(app.status == 'placed' for app in student.student.applications)
-        if is_placed:
-            placement_status = "Placed"
-        
-        student_list.append({
-            "id": student.id,
-            "name": student.name,
-            "email": student.email,
-            "branch": student.student.sdept if student.student else "N/A",
-            "phone":student.student.sphone if student.student else "N/A",
-            "status":status,
-            "placement_status": placement_status
-        })
+        placement_status = "Unplaced"
+        if student.student and hasattr(student.student, 'applications'):
+            is_placed = any(app.status == 'placed' for app in student.student.applications)
+            if is_placed:
+                placement_status = "Placed"
+            
+            student_list.append({
+                "id": student.id,
+                "name": student.name,
+                "email": student.email,
+                "branch": student.student.sdept if student.student else "N/A",
+                "phone":student.student.sphone if student.student else "N/A",
+                "status":status,
+                "placement_status": placement_status
+            })
     return jsonify(student_list), 200
 
 

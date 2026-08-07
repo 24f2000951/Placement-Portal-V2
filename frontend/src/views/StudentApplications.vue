@@ -128,9 +128,9 @@ onMounted(fetchApplications);
                 <td>
                   <span
                     :class="{
-                      'text-secondary': (app.status || '').toLowerCase() === 'pending' || (app.status || '').toLowerCase() === 'applied',
-                      'text-success': (app.status || '').toLowerCase() === 'accepted' || (app.status || '').toLowerCase() === 'approved',
-                      'text-info': (app.status || '').toLowerCase() === 'scheduled' || (app.status || '').toLowerCase() === 'shortlisted',
+                      'text-secondary': (app.status || '').toLowerCase() === 'applied',
+                      'text-success': (app.status || '').toLowerCase() === 'placed',
+                      'text-info':  (app.status || '').toLowerCase() === 'shortlisted',
                       'text-danger': (app.status || '').toLowerCase() === 'rejected'
                     }"
                   >

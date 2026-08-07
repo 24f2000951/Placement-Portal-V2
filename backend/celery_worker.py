@@ -20,7 +20,7 @@ celery_app.conf.beat_schedule = {
     },
     'daily_remainder':{
         'task': 'tasks.daily_reminder',
-        'schedule':20.0
+        'schedule':crontab(hour=9, minute=0),
     },
 }
 

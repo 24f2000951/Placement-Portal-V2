@@ -64,14 +64,13 @@ onMounted(async () => {
     new Chart(donutChartRef.value, {
       type: 'doughnut',
       data: {
-        labels: ['Pending', 'Placed', 'Rejected'],
+        labels: [ 'Placed', 'Unplaced'],
         datasets: [{
           data: [
-            data.applications_breakdown.pending, 
             data.applications_breakdown.accepted, 
-            data.applications_breakdown.rejected
+            data.applications_breakdown.unplaced
           ],
-          backgroundColor: ['#FFCE56', '#4BC0C0', '#FF6384']
+          backgroundColor: ['#36A2EB', '#EE4B2B']
         }]
       },
       options: {
