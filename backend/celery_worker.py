@@ -18,18 +18,10 @@ celery_app.conf.beat_schedule = {
         'task': 'tasks.send_monthly_report',
         'schedule': crontab(hour=0, minute=0, day_of_month='1'),
     },
-    # 'daily_remainder':{
-    #     'task': 'tasks.daily_reminder',
-    #     'schedule': crontab(hour=23, minute=30),
-    # },
-    # 'interview_reminder':{
-    #     'task': 'tasks.send_interview_reminder',
-    #     'schedule': crontab(hour=20, minute=7),
-    # },
-    # 'generate_application_csv': {
-    #     'task': 'tasks.generate_application_csv',
-    #     'schedule': crontab(hour=23, minute=59),
-    # }
+    'daily_remainder':{
+        'task': 'tasks.daily_reminder',
+        'schedule':20.0
+    },
 }
 
                          

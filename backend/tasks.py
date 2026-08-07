@@ -39,14 +39,20 @@ def send_email(to_address,subject,message,content="text",attachment=None):
 
 @celery_app.task
 def daily_reminder():
-    users = User.query.all()
-    for user in users:
-        if user.role == "student":
-            student = Student.query.filter_by(user_id=user.id).first()
-            if student:
-                message = f"Hello {user.name},\n\nThis is your daily reminder to check the latest job postings and updates on our platform. Don't miss out on any opportunities!\n\nBest regards,\nPlacement Portal Team"
-                send_email(user.email, "Daily Reminder", message)
-    return "Daily reminder emails sent successfully."
+    registered_students = User.query.join(Student, User.id == Student.user_id)\
+                                    .filter(User.role == "student").all()
+    
+    for user in registered_students:
+        message = (
+            f"Hello {user.name},\n\n"
+            f"This is your daily reminder to check the latest job postings and updates on our platform. "
+            f"Don't miss out on any opportunities!\n\n"
+            f"Best regards,\n"
+            f"Placement Portal Team"
+        )
+        send_email(user.email, "Daily Reminder", message)
+        
+    return f"Daily reminder emails sent successfully to {len(registered_students)} students."
 
 @celery_app.task
 def generate_application_csv():
@@ -72,6 +78,7 @@ def generate_application_csv():
                 'Status': application.status,
                 'Application Date': application.application_date
             })
+    send_email(application.student.user.email, "Application CSV Report", "Report generated successfully.")
     
     return os.path.abspath(csv_filename)
 
