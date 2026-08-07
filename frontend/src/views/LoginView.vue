@@ -26,18 +26,29 @@ const handleLogin = async()=>{
       router.push("/admin");
     else if (userRole==="student")
       router.push("/student");
-    else if (userRole==="company")
-      if (response.data.is_approved)
-        router.push("/company");
-      else if(response.data.is_blacklisted)
-        errorMsg.value="Your account has been blacklisted. Please contact support.";
-      else
-        warningMsg.value="Your account is pending approval. Please wait for admin approval.";
+    else if (userRole==="company") {
+      router.push("/company");
+    }
   }
 
-  catch(error){
-     console.error("Login failed", error);
-     errorMsg.value=error.response.data.error;
+  catch (error) {
+    console.error("Login failed", error);
+    
+    if (error.response && error.response.data && error.response.data.error) {
+      const message = error.response.data.error;
+      
+      if (message.toLowerCase().includes("blacklisted")) {
+        errorMsg.value = message;
+        warningMsg.value = "";
+      } else if (message.toLowerCase().includes("pending") || message.toLowerCase().includes("wait")) {
+        warningMsg.value = message;
+        errorMsg.value = ""; 
+      } else {
+        errorMsg.value = message;
+      }
+    } else {
+      errorMsg.value = "An error occurred during login. Please try again.";
+    }
   }
 }
 

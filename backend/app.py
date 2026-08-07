@@ -23,7 +23,7 @@ def register():
     name=data.get('name')
     email=data.get('email')
     password=data.get('password')
-    role=data.get('role')
+    role=data.get('role').lower()
 
     if role=='recruiter':
         role='company'
@@ -35,9 +35,18 @@ def register():
     if existing_user:
         return jsonify({"error": "User with this email already exists"}), 400
 
-    user=User(name=name,email=email,role=role)
+    company_profile=None
+
+    user=User(
+        name=name,email=email,
+        role=role,
+        is_approved=False if role == 'company' else True,
+        is_blacklisted=False)
+    
     user.set_password(password)
     db.session.add(user)
+    db.session.flush()
+
     if role == 'company':
         website = data.get('website')
         hrcontact = data.get('hrcontact')
@@ -48,10 +57,10 @@ def register():
         company_profile = Company(
             cwebsite=website,
             hrcontact=hrcontact,
-            user=user 
+            user_id=user.id
         )
 
-    db.session.add(company_profile)
+        db.session.add(company_profile)
     db.session.commit()
 
     return jsonify({"message": "User registered successfully"}), 201
@@ -61,19 +70,30 @@ def login():
     data=request.get_json()
     if not data:
         return jsonify({"error": "No input data provided"}), 400
+    
     email=data.get('email')
     password=data.get('password')
 
     user=User.query.filter_by(email=email).first()
 
-    if user.role == "company" and not user.is_approved:
-        return jsonify({"error": "Please wait for approval"}), 403
-
-    if user and user.check_password(password):
-        access_token=create_access_token(identity=str(user.id))
-        return jsonify({"message": "Login successful", "access_token": access_token, "role": user.role}), 200
-    else:
+    if not user:
         return jsonify({"error": "Invalid credentials or user not found"}), 401
+
+    if not user.check_password(password):
+        return jsonify({"error": "Invalid credentials or user not found"}), 401
+
+    if user.role == "company":
+        if user.is_blacklisted:
+            return jsonify({"error": "You have been blacklisted"}), 403
+        if not user.is_approved:
+            return jsonify({"error": "Please wait for approval"}), 403
+
+    access_token = create_access_token(identity=str(user.id))
+    return jsonify({
+        "message": "Login successful", 
+        "access_token": access_token, 
+        "role": user.role
+    }), 200
     
 
 @app.route('/api/admin/companies',methods=['GET'])
@@ -87,9 +107,7 @@ def get_companies():
     company = User.query.filter_by(role="company").all()
     company_list = []
     for recruiter in company:
-        
         company_profile = recruiter.company 
-
         if recruiter.is_approved:
             status = "Approved"
         elif recruiter.is_blacklisted:
@@ -142,6 +160,26 @@ def reject_company(company_id):
     company.is_approved = False
     db.session.commit()
     return jsonify({"message": "Company rejected and blacklisted successfully"}), 200
+
+@app.route('/api/admin/students',methods=['GET'])
+@jwt_required()
+def get_students():
+    current_user_id = get_jwt_identity()
+    user = User.query.get(current_user_id)
+    if user.role != "admin":
+        return jsonify({"error": "Unauthorized access"}), 403
+
+    students = User.query.filter_by(role="student").all()
+    student_list = []
+    for student in students:
+        student_list.append({
+            "id": student.id,
+            "name": student.name,
+            "email": student.email,
+            "is_approved": student.is_approved,
+            "is_blacklisted": student.is_blacklisted
+        })
+    return jsonify(student_list), 200
 
 @app.route('/api/company/profile',methods=['GET'])
 @jwt_required()
